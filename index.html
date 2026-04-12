@@ -114,6 +114,43 @@
         .fab:hover { transform: scale(1.12); box-shadow: 0 14px 45px rgba(0, 212, 255, 0.65); }
         .notif-btn { position: fixed; bottom: 28px; right: 28px; padding: 18px 28px; border-radius: 50px; background: linear-gradient(145deg, var(--secondary), var(--primary-dark)); color: white; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 10px 35px rgba(124, 58, 237, 0.45); display: flex; align-items: center; gap: 12px; z-index: 100; transition: all 0.35s ease; }
         .notif-btn:hover { transform: translateY(-5px); box-shadow: 0 14px 45px rgba(124, 58, 237, 0.65); }
+
+        /* New Feature Animations */
+        @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); } 50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.8); } }
+        @keyframes carPass { 0% { left: -50px; } 100% { left: 250px; } }
+        .animate-slide-in-left { animation: slideInLeft 0.5s ease forwards; }
+        .animate-slide-in-right { animation: slideInRight 0.5s ease forwards; }
+        .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        .car-passing { animation: carPass 2s linear forwards; }
+
+        /* Progress Ring */
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring-circle { transition: stroke-dashoffset 0.5s ease; }
+
+        /* Floating Widget Styles */
+        .widget-shimmer { position: relative; overflow: hidden; }
+        .widget-shimmer::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); animation: shimmer 2s infinite; }
+        @keyframes shimmer { 100% { left: 200%; } }
+
+        /* Emergency Button Animation */
+        @keyframes emergencyPulse { 0%, 100% { background-color: rgba(239, 68, 68, 0.2); } 50% { background-color: rgba(239, 68, 68, 0.4); } }
+        .emergency-active { animation: emergencyPulse 0.5s ease-in-out infinite; }
+
+        /* Better Scrollbar for Widgets */
+        .widget-scrollbar::-webkit-scrollbar { width: 6px; }
+        .widget-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px; }
+        .widget-scrollbar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+        /* Status Indicator Animation */
+        @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .status-pulse { animation: statusPulse 1.5s ease-in-out infinite; }
+
+        /* Gradient Border Animation */
+        .gradient-border { position: relative; }
+        .gradient-border::before { content: ''; position: absolute; inset: -2px; border-radius: inherit; background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent), var(--primary)); background-size: 400% 400%; animation: gradientBorder 3s ease infinite; z-index: -1; }
+        @keyframes gradientBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     </style>
 </head>
 <body>
@@ -236,19 +273,28 @@
             <!-- Dashboard -->
             <section id="tab-dashboard" class="tab-content space-y-7">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div class="glass stat-card p-7 animate-slide-up" style="animation-delay: 0.1s;">
+                    <div class="glass stat-card p-7 animate-slide-up relative overflow-hidden" style="animation-delay: 0.1s;">
+                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500"></div>
                         <div class="flex items-center justify-between mb-5">
-                            <div class="w-16 h-16 bg-gradient-to-br from-cyan-500/28 to-cyan-600/28 rounded-2xl flex items-center justify-center">
+                            <div class="w-16 h-16 bg-gradient-to-br from-cyan-500/28 to-cyan-600/28 rounded-2xl flex items-center justify-center relative">
                                 <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                <span class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-900 animate-pulse"></span>
                             </div>
                             <span class="text-xs text-gray-400 bg-white/5 px-4 py-2 rounded-full">الآن</span>
                         </div>
-                        <h3 class="text-5xl font-black text-white mb-2"><span id="carsCount">0</span>/<span id="maxCars">20</span></h3>
+                        <div class="flex items-center gap-4 mb-4">
+                            <h3 class="text-4xl font-black text-white"><span id="carsCount">0</span></h3>
+                            <div class="text-left">
+                                <span class="text-lg text-gray-400">/</span>
+                                <span class="text-xl text-gray-500" id="maxCars">20</span>
+                            </div>
+                        </div>
                         <p class="text-gray-400 text-sm mb-5">عدد السيارات</p>
-                        <div class="h-3 bg-white/10 rounded-full overflow-hidden">
+                        <div class="relative h-3 bg-white/10 rounded-full overflow-hidden">
                             <div id="occupancyBar" class="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all duration-800" style="width: 0%"></div>
                         </div>
                         <p class="text-xs text-gray-400 mt-3"><span id="availableSpots">20</span> موقف متاح</p>
+                        <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl"></div>
                     </div>
                     <div class="glass stat-card p-7 animate-slide-up" style="animation-delay: 0.15s;">
                         <div class="flex items-center justify-between mb-5">
@@ -561,7 +607,113 @@
         </main>
     </div>
 
-    <button class="fab" onclick="toggleFab()"><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
+    <!-- Live Camera Feed -->
+    <div id="cameraFeed" class="fixed bottom-28 left-6 w-48 h-36 glass rounded-2xl overflow-hidden shadow-2xl z-50 hidden">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 w-full h-full flex items-center justify-center relative">
+            <div class="absolute top-2 left-2 flex items-center gap-2">
+                <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                <span class="text-xs text-white font-semibold">LIVE</span>
+            </div>
+            <div class="text-center">
+                <svg class="w-12 h-12 text-gray-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <p class="text-xs text-gray-400">بوابة الدخول</p>
+            </div>
+            <div id="carPassingAnimation" class="absolute inset-0 pointer-events-none overflow-hidden">
+                <div id="passingCar" class="absolute text-4xl transition-all duration-2000" style="left: -50px; top: 50%; transform: translateY(-50%);">🚗</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Congestion Prediction Widget -->
+    <div id="congestionWidget" class="fixed top-28 right-6 glass rounded-2xl p-5 shadow-2xl z-50 animate-fade-in" style="display: none;">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-cyan-500/30 to-purple-500/30 rounded-xl flex items-center justify-center">
+                <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-white text-sm">التنبؤ بالازدحام</h4>
+                <p class="text-xs text-gray-400">AI Prediction</p>
+            </div>
+        </div>
+        <div id="congestionLevel" class="mb-4">
+            <div class="flex items-center gap-3 mb-3">
+                <div id="congestionBar" class="flex-1 h-3 bg-white/10 rounded-full overflow-hidden flex gap-1">
+                    <div class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="h-full bg-yellow-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="h-full bg-orange-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="h-full bg-red-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="congestionText" class="text-sm font-bold text-green-400">منخفض</span>
+            </div>
+            <p id="congestionAdvice" class="text-xs text-gray-400">الوقت الحالي مناسب للزيارة</p>
+        </div>
+        <div class="text-xs text-gray-500">آخر تحديث: <span id="congestionUpdate">--:--</span></div>
+    </div>
+
+    <!-- Quick Actions Menu -->
+    <div id="quickActionsMenu" class="fixed bottom-28 right-6 z-50" style="display: none;">
+        <div class="glass rounded-2xl p-4 shadow-2xl space-y-3">
+            <button onclick="toggleCamera()" class="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all">
+                <span class="w-10 h-10 bg-purple-500/30 rounded-lg flex items-center justify-center text-xl">📹</span>
+                <span class="text-white text-sm font-semibold">الكاميرات</span>
+            </button>
+            <button onclick="showCongestion()" class="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all">
+                <span class="w-10 h-10 bg-cyan-500/30 rounded-lg flex items-center justify-center text-xl">📊</span>
+                <span class="text-white text-sm font-semibold">التنبؤ</span>
+            </button>
+            <button onclick="showQuickBook()" class="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all">
+                <span class="w-10 h-10 bg-green-500/30 rounded-lg flex items-center justify-center text-xl">⚡</span>
+                <span class="text-white text-sm font-semibold">حجز سريع</span>
+            </button>
+            <button onclick="toggleEmergency()" class="flex items-center gap-3 w-full p-3 bg-red-500/20 hover:bg-red-500/30 rounded-xl transition-all border border-red-500/30">
+                <span class="w-10 h-10 bg-red-500/50 rounded-lg flex items-center justify-center text-xl">🚨</span>
+                <span class="text-red-400 text-sm font-bold">طوارئ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- System Health Monitor -->
+    <div id="systemHealth" class="fixed top-28 left-6 glass rounded-2xl p-5 shadow-2xl z-50" style="display: none;">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-green-500/30 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h4 class="font-bold text-white text-sm">صحة النظام</h4>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">WiFi</span>
+                <div class="flex items-center gap-2">
+                    <div class="flex gap-1">
+                        <div class="w-1 h-3 bg-green-400 rounded-full"></div>
+                        <div class="w-1 h-4 bg-green-400 rounded-full"></div>
+                        <div class="w-1 h-5 bg-green-400 rounded-full"></div>
+                        <div class="w-1 h-3 bg-gray-600 rounded-full"></div>
+                    </div>
+                    <span class="text-xs text-green-400">98%</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">Firebase</span>
+                <div class="flex items-center gap-2">
+                    <span id="healthFirebase" class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <span id="healthFirebaseText" class="text-xs text-green-400">متصل</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">المستشعرات</span>
+                <span class="text-xs text-green-400">7/7</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">Uptime</span>
+                <span id="uptimeCounter" class="text-xs text-cyan-400 font-mono">00:00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <button id="fabMenuBtn" class="fab" onclick="toggleQuickActions()">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M8 12h.01M11 12h.01M12 12h.01M15 12h.01M5 8h.01M8 8h.01M11 8h.01M12 8h.01M15 8h.01M5 16h.01M8 16h.01M11 16h.01M12 16h.01M15 16h.01"/></svg>
+    </button>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyDemo-Key", authDomain: "my-systim.firebaseapp.com", databaseURL: "https://my-systim-default-rtdb.firebaseio.com", projectId: "my-systim", storageBucket: "my-systim.appspot.com", messagingSenderId: "123456789", appId: "1:123456789:web:abcdef123456" };
@@ -629,6 +781,153 @@
         function initializeApp() { if (currentTab === 'reports') initializeCharts(); initializeParkingGrid(); updateSensorsUI(); connectToFirebase(); if (!firebaseInitialized) { startSimulation(); document.getElementById('firebaseStatus').className = 'status-badge status-offline'; document.getElementById('firebaseStatus').innerHTML = '<span>محاكاة</span>'; } updateUI(); renderEvents(); renderGateLogs(); renderActiveBookings(); if ('Notification' in window && Notification.permission === 'default') document.getElementById('notifBtn').style.display = 'flex'; }
         document.addEventListener('DOMContentLoaded', () => { const saved = localStorage.getItem('garageUser'); if (saved) { currentUser = JSON.parse(saved); document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; document.getElementById('userRoleIcon').textContent = roleIcons[currentUser.role]; document.getElementById('userRoleName').textContent = currentUser.name; updatePermissions(); initializeApp(); } });
         function toggleFab() { document.querySelector('.fab-menu')?.classList.toggle('active'); }
+
+        // New Feature Functions
+        let cameraVisible = false;
+        let quickActionsVisible = false;
+        let uptimeSeconds = 0;
+        let uptimeInterval;
+
+        function toggleQuickActions() {
+            quickActionsVisible = !quickActionsVisible;
+            document.getElementById('quickActionsMenu').style.display = quickActionsVisible ? 'block' : 'none';
+            const btn = document.getElementById('fabMenuBtn');
+            if (quickActionsVisible) {
+                btn.innerHTML = '<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+            } else {
+                btn.innerHTML = '<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M8 12h.01M11 12h.01M12 12h.01M15 12h.01M5 8h.01M8 8h.01M11 8h.01M12 8h.01M15 8h.01M5 16h.01M8 16h.01M11 16h.01M12 16h.01M15 16h.01"/></svg>';
+            }
+        }
+
+        function toggleCamera() {
+            cameraVisible = !cameraVisible;
+            document.getElementById('cameraFeed').style.display = cameraVisible ? 'block' : 'none';
+            showToast(cameraVisible ? 'تم تشغيل الكاميرا' : 'تم إيقاف الكاميرا', 'success');
+        }
+
+        function showCongestion() {
+            const widget = document.getElementById('congestionWidget');
+            widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+            updateCongestionPrediction();
+        }
+
+        function updateCongestionPrediction() {
+            const hour = new Date().getHours();
+            let level = 'منخفض';
+            let color = 'green';
+            let percent = 20;
+            let advice = 'الوقت الحالي مناسب جداً للزيارة';
+
+            // Simple AI-based prediction based on hour
+            if (hour >= 7 && hour <= 9) { level = 'متوسط'; color = 'yellow'; percent = 45; advice = 'ساعات الذروة الصباحية - توقع ازدحام'; }
+            else if (hour >= 11 && hour <= 14) { level = 'مرتفع'; color = 'orange'; percent = 70; advice = 'وقت الظهيرة - المواقف محدودة'; }
+            else if (hour >= 16 && hour <= 19) { level = 'حرج'; color = 'red'; percent = 95; advice = 'ساعات الذروة المسائية - تجنب الزيارة'; }
+            else if (hour >= 20 && hour <= 22) { level = 'متوسط'; color = 'yellow'; percent = 55; advice = 'الازدحام يتناقص'; }
+
+            const bars = document.querySelectorAll('#congestionBar > div');
+            bars.forEach((bar, i) => {
+                const thresholds = { 0: 25, 1: 50, 2: 75, 3: 100 };
+                const idx = color === 'green' ? 0 : color === 'yellow' ? 1 : color === 'orange' ? 2 : 3;
+                bar.style.width = i <= idx ? (i === idx ? (percent % 25) + '%' : '100%') : '0%';
+            });
+
+            const textEl = document.getElementById('congestionText');
+            textEl.textContent = level;
+            textEl.className = 'text-sm font-bold text-' + color + '-400';
+
+            document.getElementById('congestionAdvice').textContent = advice;
+            document.getElementById('congestionUpdate').textContent = new Date().toLocaleTimeString('ar-SA');
+        }
+
+        function showQuickBook() {
+            const availableSpots = garageData.parkingSpots.map((s, i) => s === 'available' ? i + 1 : null).filter(x => x);
+            if (availableSpots.length === 0) {
+                showToast('لا توجد مواقف متاحة', 'warning');
+                return;
+            }
+            const randomSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
+            document.getElementById('bookingSpot').value = randomSpot;
+            switchTab('booking');
+            document.querySelectorAll('.parking-spot').forEach((s, i) => s.classList.toggle('selected', i === randomSpot - 1));
+            showToast('تم تحديد موقف #' + randomSpot + ' - أدخل رقم السيارة', 'success');
+        }
+
+        function toggleEmergency() {
+            triggerAlert('fire', '🚨 تنبيه طوارئ! تم تفعيل نظام الطوارئ');
+            if (currentUser && currentUser.role === 'admin') {
+                sendCommand('securityDoor', true);
+            }
+            // Play loud alarm
+            if (settings.sound) {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.setValueAtTime(600, ctx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(800, ctx.currentTime + 0.4);
+                osc.type = 'sawtooth';
+                gain.gain.value = 0.15;
+                osc.start();
+                setTimeout(() => osc.stop(), 800);
+            }
+        }
+
+        function startUptimeCounter() {
+            uptimeInterval = setInterval(() => {
+                uptimeSeconds++;
+                const hours = Math.floor(uptimeSeconds / 3600).toString().padStart(2, '0');
+                const mins = Math.floor((uptimeSeconds % 3600) / 60).toString().padStart(2, '0');
+                const secs = (uptimeSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('uptimeCounter').textContent = hours + ':' + mins + ':' + secs;
+            }, 1000);
+        }
+
+        function animateCarPassing() {
+            const car = document.getElementById('passingCar');
+            if (!car || !cameraVisible) return;
+            car.style.left = '-50px';
+            setTimeout(() => {
+                car.style.left = '200px';
+            }, 50);
+        }
+
+        // Initialize new features
+        function initializeNewFeatures() {
+            // Show system health for admin
+            if (currentUser && currentUser.role === 'admin') {
+                document.getElementById('systemHealth').style.display = 'block';
+                startUptimeCounter();
+            }
+
+            // Initial congestion prediction
+            updateCongestionPrediction();
+            setInterval(updateCongestionPrediction, 60000); // Update every minute
+
+            // Auto-detect if Firebase is connected
+            if (!firebaseInitialized) {
+                document.getElementById('healthFirebase').className = 'w-2 h-2 rounded-full bg-yellow-400 animate-pulse';
+                document.getElementById('healthFirebaseText').textContent = 'محاكاة';
+                document.getElementById('healthFirebaseText').className = 'text-xs text-yellow-400';
+            }
+        }
+
+        // Enhanced initializeApp
+        const originalInitializeApp = initializeApp;
+        initializeApp = function() {
+            originalInitializeApp();
+            initializeNewFeatures();
+        };
+
+        // Enhanced car detection animation
+        const originalAddEvent = addEvent;
+        addEvent = function(message, type) {
+            originalAddEvent(message, type);
+            if (type === 'entry' || type === 'exit') {
+                animateCarPassing();
+            }
+        };
     </script>
 </body>
 </html>
