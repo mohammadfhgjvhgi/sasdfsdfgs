@@ -38,6 +38,7 @@
         .btn-secondary:hover { background: rgba(124, 58, 237, 0.22); }
         .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; box-shadow: 0 6px 25px rgba(239, 68, 68, 0.45); }
         .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; box-shadow: 0 6px 25px rgba(16, 185, 129, 0.45); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; filter: grayscale(40%); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(45px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
@@ -599,7 +600,7 @@
                 <div class="glass p-7 animate-slide-up" style="animation-delay: 0.16s;">
                     <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4"><span class="w-12 h-12 bg-cyan-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>معلومات النظام</h3>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 bg-white/5 rounded-xl text-center"><span class="text-3xl font-bold text-white">v2.0</span><p class="text-xs text-gray-400 mt-2">إصدار التطبيق</p></div>
+                        <div class="p-4 bg-white/5 rounded-xl text-center"><span class="text-3xl font-bold text-white">v3.0</span><p class="text-xs text-gray-400 mt-2">إصدار التطبيق</p></div>
                         <div class="p-4 bg-white/5 rounded-xl text-center"><span class="text-3xl font-bold text-white">9</span><p class="text-xs text-gray-400 mt-2">عدد المواقف</p></div>
                     </div>
                 </div>
@@ -1216,27 +1217,9 @@
                 document.getElementById('dataSent').textContent = dataSent + ' KB';
                 document.getElementById('dataReceived').textContent = dataReceived + ' KB';
 
-                // Random events (10% chance)
-                if (Math.random() < 0.1) {
-                    const events = [
-                        '📊 تحديث البيانات من المستشعرات',
-                        '🔄 مزامنة مع Firebase',
-                        '📡 أمر مستلم من التطبيق',
-                        '⚡ تغيير حالة البوابة',
-                        '🔔 تنبيه: تغيير في درجة الحرارة'
-                    ];
-                    addIoTLog(events[Math.floor(Math.random() * events.length)], 'info');
-                }
-
-                // Simulate garage data changes
-                garageData.temperature = Math.round((22 + Math.random() * 8) * 10) / 10;
-                garageData.humidity = Math.round((40 + Math.random() * 30) * 10) / 10;
-                garageData.gasLevel = Math.floor(100 + Math.random() * 150);
-
-                // Random car activity (managed by main simulation only)
-                // IoT simulation only handles environmental data
+                // Random IoT log events (8% chance)
                 if (Math.random() < 0.08) {
-                    const logEvents = [
+                    const iotLogEvents = [
                         '📊 تحديث البيانات من المستشعرات',
                         '🔄 مزامنة مع Firebase',
                         '📡 أمر مستلم من التطبيق',
@@ -1244,7 +1227,7 @@
                         '✅ فحص دوري للمستشعرات - جميعها تعمل',
                         '📡 إرسال بيانات المستشعرات إلى Firebase'
                     ];
-                    addIoTLog(logEvents[Math.floor(Math.random() * logEvents.length)], 'info');
+                    addIoTLog(iotLogEvents[Math.floor(Math.random() * iotLogEvents.length)], 'info');
                 }
             }, 2000);
         }
@@ -1369,6 +1352,39 @@
             updateGateUI('exit', garageData.exitGate);
             updateGateUI('security', garageData.securityDoor);
             updateCharts();
+
+            // Update system status based on actual alerts
+            const systemStatusEl = document.getElementById('systemStatusText');
+            const systemBadgeEl = document.getElementById('systemStatus');
+            const hasAlert = garageData.flameAlert || garageData.gasAlert || garageData.vibrationAlert || garageData.temperature > settings.tempThreshold || garageData.gasLevel > settings.gasThreshold;
+            if (systemStatusEl && systemBadgeEl) {
+                if (hasAlert) {
+                    systemStatusEl.textContent = 'تنبيه!';
+                    systemStatusEl.className = 'text-2xl font-bold text-red-400 mb-1';
+                    systemBadgeEl.textContent = 'تنبيه';
+                    systemBadgeEl.className = 'text-xs px-4 py-2 bg-red-500/18 text-red-400 rounded-full';
+                } else {
+                    systemStatusEl.textContent = 'نظام آمن';
+                    systemStatusEl.className = 'text-2xl font-bold text-green-400 mb-1';
+                    systemBadgeEl.textContent = 'نشط';
+                    systemBadgeEl.className = 'text-xs px-4 py-2 bg-green-500/18 text-green-400 rounded-full';
+                }
+            }
+
+            // Update humidity status
+            const humidityStatusEl = document.getElementById('humidityStatus');
+            if (humidityStatusEl) {
+                if (garageData.humidity > 70) {
+                    humidityStatusEl.textContent = 'مرتفع';
+                    humidityStatusEl.className = 'text-xs px-4 py-2 bg-yellow-500/18 text-yellow-400 rounded-full';
+                } else if (garageData.humidity < 30) {
+                    humidityStatusEl.textContent = 'منخفض';
+                    humidityStatusEl.className = 'text-xs px-4 py-2 bg-orange-500/18 text-orange-400 rounded-full';
+                } else {
+                    humidityStatusEl.textContent = 'طبيعي';
+                    humidityStatusEl.className = 'text-xs px-4 py-2 bg-blue-500/18 text-blue-400 rounded-full';
+                }
+            }
         }
 
         function updateSensorsUI() {
@@ -1677,7 +1693,10 @@
         }
 
         // ============ SIMULATION ============
+        let mainSimulationInterval = null;
         function startSimulation() {
+            // Prevent duplicate simulation intervals
+            if (mainSimulationInterval) return;
             // Realistic simulation with proper parking spot management
             setInterval(() => {
                 // Update environmental sensors with realistic ranges
@@ -1776,6 +1795,15 @@
         }
 
         function initializeApp() {
+            // Prevent duplicate initialization
+            if (window._appInitialized) {
+                // Just refresh the UI if already initialized
+                updateUI();
+                updateSensorsUI();
+                updatePermissions();
+                return;
+            }
+            window._appInitialized = true;
             if (currentTab === 'reports') initializeCharts();
             initializeParkingGrid();
             updateSensorsUI();
@@ -1784,6 +1812,9 @@
                 startSimulation();
                 const firebaseStatusEl = document.getElementById('firebaseStatus');
                 if (firebaseStatusEl) { firebaseStatusEl.className = 'status-badge status-offline'; firebaseStatusEl.innerHTML = '<span>محاكاة</span>'; }
+                // Update Firebase connection status in Settings page
+                const fbConnStatus = document.getElementById('firebaseConnectionStatus');
+                if (fbConnStatus) { fbConnStatus.className = 'status-badge status-offline'; fbConnStatus.innerHTML = '<span>وضع المحاكاة</span>'; }
             }
             updateUI();
             renderEvents();
