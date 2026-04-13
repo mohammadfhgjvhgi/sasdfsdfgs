@@ -716,104 +716,600 @@
     </button>
 
     <script>
+        // Firebase Configuration - Simulation Mode
         const firebaseConfig = { apiKey: "AIzaSyDemo-Key", authDomain: "my-systim.firebaseapp.com", databaseURL: "https://my-systim-default-rtdb.firebaseio.com", projectId: "my-systim", storageBucket: "my-systim.appspot.com", messagingSenderId: "123456789", appId: "1:123456789:web:abcdef123456" };
         let database, firebaseInitialized = false;
-        try { firebase.initializeApp(firebaseConfig); database = firebase.database(); firebaseInitialized = true; } catch (e) { console.log('Firebase simulation mode'); }
+        try {
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                firebaseInitialized = true;
+            }
+        } catch (e) {
+            console.log('Firebase simulation mode active');
+        }
 
+        // Global Variables
         let currentUser = null, currentTab = 'dashboard';
         let settings = { sound: true, vibration: true, browserNotif: false, gasThreshold: 300, tempThreshold: 40 };
         let garageData = { carsCount: 5, maxCars: 20, temperature: 28, humidity: 55, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 120, parkingSpots: Array(20).fill('available') };
         let events = [], gateLogs = [], bookings = [];
         let occupancyChart, tempHumidityChart, carsMovementChart, alertsDistributionChart;
 
-        const users = { 'admin@garage.com': { password: '123456', role: 'admin', name: 'مدير النظام' }, 'guard@garage.com': { password: '123456', role: 'guard', name: 'حارس الأمن' }, 'visitor@garage.com': { password: '123456', role: 'visitor', name: 'زائر' } };
+        // User Authentication Data
+        const users = {
+            'admin@garage.com': { password: '123456', role: 'admin', name: 'مدير النظام' },
+            'guard@garage.com': { password: '123456', role: 'guard', name: 'حارس الأمن' },
+            'visitor@garage.com': { password: '123456', role: 'visitor', name: 'زائر' }
+        };
         const roleIcons = { 'admin': '👑', 'guard': '🛡️', 'visitor': '👤' };
-        const roleNames = { 'admin': 'مدير النظام', 'guard': 'حارس الأمن', 'visitor': 'زائر' };
 
+        // ============ LOGIN FUNCTIONS ============
         function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const password = document.getElementById('loginPassword').value;
-            console.log('Login attempt:', email, password); // Debug
-            if (users[email] && users[email].password === password) {
-                console.log('Login successful'); // Debug
-                loginUser(email, users[email]);
+            const emailInput = document.getElementById('loginEmail');
+            const passwordInput = document.getElementById('loginPassword');
+            const errorDiv = document.getElementById('loginError');
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                errorDiv.textContent = 'يرجى إدخال البريد وكلمة المرور';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            const user = users[email];
+            if (user && user.password === password) {
+                performLogin(email, user);
             } else {
-                console.log('Login failed'); // Debug
-                document.getElementById('loginError').textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-                document.getElementById('loginError').classList.remove('hidden');
+                errorDiv.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                errorDiv.classList.remove('hidden');
             }
         }
+
         function quickLogin(role) {
-            console.log('Quick login:', role); // Debug
             const emails = { 'admin': 'admin@garage.com', 'guard': 'guard@garage.com', 'visitor': 'visitor@garage.com' };
             const email = emails[role];
-            console.log('Email:', email, 'User:', users[email]); // Debug
-            loginUser(email, users[email]);
+            if (email && users[email]) {
+                performLogin(email, users[email]);
+            }
         }
-        function loginUser(email, userData) {
-            console.log('LoginUser called:', email, userData); // Debug
-            currentUser = { email, ...userData };
+
+        function performLogin(email, userData) {
+            currentUser = { email: email, role: userData.role, name: userData.name };
             localStorage.setItem('garageUser', JSON.stringify(currentUser));
+
+            // Hide login, show main app
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('userRoleIcon').textContent = roleIcons[userData.role];
             document.getElementById('userRoleName').textContent = userData.name;
+
             updatePermissions();
             initializeApp();
             showToast('مرحباً بك! ' + userData.name, 'success');
         }
-        function handleLogout() { currentUser = null; localStorage.removeItem('garageUser'); document.getElementById('mainApp').style.display = 'none'; document.getElementById('loginPage').style.display = 'flex'; showToast('تم تسجيل الخروج', 'success'); }
-        function updatePermissions() { const canControl = currentUser && (currentUser.role === 'admin' || currentUser.role === 'guard'); ['entryGateBtn', 'exitGateBtn', 'securityDoorBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !canControl; }); }
 
-        document.querySelectorAll('.tab-btn').forEach(btn => { btn.addEventListener('click', () => switchTab(btn.dataset.tab)); });
-        function switchTab(tab) { currentTab = tab; document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab)); document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById('tab-' + tab).style.display = 'block'; if (tab === 'reports' && !carsMovementChart) initializeCharts(); }
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('garageUser');
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('loginForm').reset();
+            showToast('تم تسجيل الخروج', 'success');
+        }
 
-        function connectToFirebase() { if (!firebaseInitialized) return; database.ref('garage').on('value', (snapshot) => { const data = snapshot.val(); if (data) garageData = { ...garageData, ...data }; updateUI(); }); }
-        function sendCommand(command, value) { if (firebaseInitialized) database.ref('commands').update({ [command]: value }); handleLocalCommand(command, value); }
-        function handleLocalCommand(command, value) { const names = { 'entryGate': 'بوابة الدخول', 'exitGate': 'بوابة الخروج', 'securityDoor': 'باب غرفة الأمان' }; if (value) setTimeout(() => sendCommand(command, false), 5000); addGateLog(command, value); updateGateUI(command, value); showToast('تم ' + (value ? 'فتح' : 'إغلاق') + ' ' + names[command], 'success'); }
-        function toggleGate(gate) { const map = { 'entry': 'entryGate', 'exit': 'exitGate', 'security': 'securityDoor' }; sendCommand(map[gate], !garageData[map[gate]]); }
-        function updateGateUI(gate, isOpen) { ['entry', 'exit', 'security'].forEach(g => { const statusEl = document.getElementById(g + 'Status'), btnEl = document.getElementById(g + 'Btn'), visualEl = document.getElementById(g + 'Gate'), iconEl = document.getElementById(g + 'Icon'); if (statusEl) { statusEl.className = 'status-badge ' + (isOpen ? 'status-offline' : 'status-online'); statusEl.innerHTML = '<span>' + (isOpen ? 'بوابة مفتوحة' : 'بوابة مغلقة') + '</span>'; } if (btnEl) btnEl.innerHTML = isOpen ? '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg><span>إغلاق</span>' : '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg><span>فتح</span>'; if (visualEl) visualEl.classList.toggle('gate-open', isOpen); if (iconEl) iconEl.textContent = isOpen ? '✅' : '🚫'; }); }
-        function addGateLog(gate, action) { const names = { 'entryGate': 'بوابة الدخول', 'exitGate': 'بوابة الخروج', 'securityDoor': 'باب غرفة الأمان' }; gateLogs.unshift({ time: new Date().toLocaleTimeString('ar-SA'), gate: names[gate], action: action ? 'فتح' : 'إغلاق', user: currentUser ? currentUser.name : 'نظام' }); if (gateLogs.length > 20) gateLogs.pop(); renderGateLogs(); }
-        function renderGateLogs() { const c = document.getElementById('gateLogs'); if (gateLogs.length === 0) { c.innerHTML = '<p class="text-gray-400 text-center py-8">لا توجد عمليات مسجلة</p>'; return; } c.innerHTML = gateLogs.map(log => `<div class="event-item gate"><div class="flex justify-between items-center"><span class="font-semibold text-white">${log.gate}</span><span class="text-sm text-gray-400">${log.time}</span></div><p class="text-sm text-gray-300">${log.action} بواسطة ${log.user}</p></div>`).join(''); }
+        function updatePermissions() {
+            const canControl = currentUser && (currentUser.role === 'admin' || currentUser.role === 'guard');
+            ['entryGateBtn', 'exitGateBtn', 'securityDoorBtn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !canControl;
+            });
+        }
 
-        function updateUI() { document.getElementById('carsCount').textContent = garageData.carsCount; document.getElementById('maxCars').textContent = garageData.maxCars; document.getElementById('temperature').textContent = garageData.temperature; document.getElementById('humidity').textContent = garageData.humidity; document.getElementById('headerTemp').textContent = garageData.temperature + '°C'; document.getElementById('availableSpots').textContent = garageData.maxCars - garageData.carsCount; const occ = (garageData.carsCount / garageData.maxCars) * 100; document.getElementById('occupancyBar').style.width = occ + '%'; const tempStatus = document.getElementById('tempStatus'); if (garageData.temperature > settings.tempThreshold) { tempStatus.textContent = 'خطر!'; tempStatus.className = 'text-xs px-4 py-2 bg-red-500/18 text-red-400 rounded-full'; } else if (garageData.temperature > 35) { tempStatus.textContent = 'حار'; tempStatus.className = 'text-xs px-4 py-2 bg-yellow-500/18 text-yellow-400 rounded-full'; } else { tempStatus.textContent = 'معتدل'; tempStatus.className = 'text-xs px-4 py-2 bg-green-500/18 text-green-400 rounded-full'; } document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-SA'); updateGateUI('entry', garageData.entryGate); updateGateUI('exit', garageData.exitGate); updateGateUI('security', garageData.securityDoor); updateCharts(); }
+        // ============ TAB NAVIGATION ============
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab buttons event listeners
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
 
-        function updateSensorsUI() { const updateSensor = (id, value, time, alert) => { const vEl = document.getElementById(id + 'Value'), tEl = document.getElementById(id + 'Time'), sEl = document.getElementById(id + 'Status'); if (vEl) vEl.textContent = value; if (tEl) tEl.textContent = time; if (sEl) { sEl.className = 'status-badge ' + (alert ? 'status-danger' : 'status-online'); sEl.innerHTML = '<span>' + (alert ? 'خطر!' : 'آمن') + '</span>'; } }; updateSensor('irEntry', garageData.irEntry ? '✓ سيارة' : 'لا يوجد', garageData.irEntry ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.irEntry); updateSensor('irExit', garageData.irExit ? '✓ سيارة' : 'لا يوجد', garageData.irExit ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.irExit); updateSensor('flame', garageData.flameAlert ? '⚠ حريق!' : 'طبيعي', garageData.flameAlert ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.flameAlert); const gasPct = Math.min((garageData.gasLevel / settings.gasThreshold) * 100, 100); document.getElementById('gasBar').style.width = gasPct + '%'; document.getElementById('gasValue').textContent = garageData.gasLevel; document.getElementById('gasThreshold').textContent = settings.gasThreshold; updateSensor('gas', garageData.gasLevel + ' ppm', '--:--', garageData.gasLevel > settings.gasThreshold); updateSensor('vibration', garageData.vibrationAlert ? '⚠ اهتزاز!' : 'لا يوجد', garageData.vibrationAlert ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.vibrationAlert); document.getElementById('dhtTemp').textContent = garageData.temperature + '°'; document.getElementById('dhtHumidity').textContent = garageData.humidity + '%'; updateSensorsGrid(); }
-        function updateSensorsGrid() { const sensors = [{ name: 'IR Entry', status: garageData.irEntry ? 'warning' : 'safe', icon: '🚗' }, { name: 'IR Exit', status: garageData.irExit ? 'warning' : 'safe', icon: '🚗' }, { name: 'Flame', status: garageData.flameAlert ? 'danger' : 'safe', icon: '🔥' }, { name: 'Gas', status: garageData.gasLevel > settings.gasThreshold ? 'danger' : 'safe', icon: '💨' }, { name: 'Vibration', status: garageData.vibrationAlert ? 'danger' : 'safe', icon: '📳' }, { name: 'Temp', status: garageData.temperature > settings.tempThreshold ? 'warning' : 'safe', icon: '🌡️' }, { name: 'Humidity', status: 'safe', icon: '💧' }]; const colors = { safe: 'bg-green-500', warning: 'bg-yellow-500', danger: 'bg-red-500' }; document.getElementById('sensorsStatusGrid').innerHTML = sensors.map(s => `<div class="flex flex-col items-center p-4 bg-white/5 rounded-xl"><span class="text-2xl mb-2">${s.icon}</span><span class="text-xs text-gray-300">${s.name}</span><span class="w-4 h-4 rounded-full ${colors[s.status]} mt-2 ${s.status === 'danger' ? 'animate-pulse' : ''}"></span></div>`).join(''); }
+            // Check for saved user
+            const saved = localStorage.getItem('garageUser');
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    if (currentUser && currentUser.email) {
+                        document.getElementById('loginPage').style.display = 'none';
+                        document.getElementById('mainApp').style.display = 'block';
+                        document.getElementById('userRoleIcon').textContent = roleIcons[currentUser.role] || '👤';
+                        document.getElementById('userRoleName').textContent = currentUser.name || 'مستخدم';
+                        updatePermissions();
+                        initializeApp();
+                    }
+                } catch (e) {
+                    console.error('Error parsing saved user:', e);
+                }
+            }
+        });
 
-        function initializeParkingGrid() { const grid = document.getElementById('parkingGrid'); grid.innerHTML = ''; for (let i = 0; i < 20; i++) { const spot = document.createElement('div'); spot.className = 'parking-spot available'; spot.innerHTML = `<span class="number">${i + 1}</span><span class="status">متاح</span>`; spot.onclick = () => selectSpot(i + 1); grid.appendChild(spot); } updateParkingGrid(); }
-        function updateParkingGrid() { const spots = document.querySelectorAll('.parking-spot'); const statuses = { available: ['متاح', 'green-500'], occupied: ['مشغول', 'red-500'], booked: ['محجوز', 'yellow-500'] }; spots.forEach((spot, i) => { spot.className = 'parking-spot ' + garageData.parkingSpots[i]; const [text, color] = Object.values(statuses[garageData.parkingSpots[i]]); spot.innerHTML = `<span class="number">${i + 1}</span><span class="status" style="color: var(--${color})">${text}</span>`; }); }
-        function selectSpot(num) { if (garageData.parkingSpots[num - 1] !== 'available') { showToast('هذا الموقف غير متاح', 'warning'); return; } document.getElementById('bookingSpot').value = num; document.querySelectorAll('.parking-spot').forEach((s, i) => s.classList.toggle('selected', i === num - 1)); }
-        function handleBooking(e) { e.preventDefault(); const spot = parseInt(document.getElementById('bookingSpot').value), car = document.getElementById('bookingCarNumber').value, time = document.getElementById('bookingTime').value, endTime = document.getElementById('bookingEndTime').value; if (!spot || !car || !time) { showToast('يرجى ملء جميع الحقول', 'warning'); return; } bookings.push({ spotNumber: spot, carNumber: car, startTime: new Date(time).toISOString(), endTime: endTime ? new Date(endTime).toISOString() : null, status: 'active', user: currentUser ? currentUser.name : 'زائر' }); garageData.parkingSpots[spot - 1] = 'booked'; garageData.carsCount++; updateParkingGrid(); updateUI(); renderActiveBookings(); document.getElementById('bookingForm').reset(); showToast('تم الحجز بنجاح!', 'success'); addEvent('حجز جديد - موقف ' + spot, 'entry'); }
-        function renderActiveBookings() { const c = document.getElementById('activeBookings'); const active = bookings.filter(b => b.status === 'active'); if (active.length === 0) { c.innerHTML = '<p class="text-gray-400 text-center py-8">لا توجد حجوزات نشطة</p>'; return; } c.innerHTML = active.map((b, i) => `<div class="flex justify-between items-center p-5 bg-white/5 rounded-xl"><div><p class="font-bold text-white">موقف #${b.spotNumber}</p><p class="text-sm text-gray-400">${b.carNumber}</p></div><div class="text-left"><p class="text-sm text-gray-400">${b.user}</p><button onclick="cancelBooking(${i})" class="text-red-400 hover:text-red-300 text-sm mt-1">إلغاء</button></div></div>`).join(''); }
-        function cancelBooking(i) { const b = bookings[i]; garageData.parkingSpots[b.spotNumber - 1] = 'available'; bookings[i].status = 'cancelled'; updateParkingGrid(); updateUI(); renderActiveBookings(); showToast('تم إلغاء الحجز', 'success'); }
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-content').forEach(c => {
+                c.style.display = 'none';
+            });
+            const tabContent = document.getElementById('tab-' + tab);
+            if (tabContent) {
+                tabContent.style.display = 'block';
+            }
+            if (tab === 'reports' && !carsMovementChart) {
+                initializeCharts();
+            }
+        }
 
-        function initializeCharts() { const occCtx = document.getElementById('occupancyChart').getContext('2d'); occupancyChart = new Chart(occCtx, { type: 'doughnut', data: { labels: ['مشغول', 'متاح'], datasets: [{ data: [garageData.carsCount, garageData.maxCars - garageData.carsCount], backgroundColor: ['#00d4ff', 'rgba(255,255,255,0.1)'], borderColor: ['#00d4ff', 'rgba(255,255,255,0.2)'], borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } } }); const tempCtx = document.getElementById('tempHumidityChart').getContext('2d'); tempHumidityChart = new Chart(tempCtx, { type: 'line', data: { labels: ['6 ص', '9 ص', '12 م', '3 م', '6 م', '9 م'], datasets: [{ label: 'الحرارة', data: [24, 26, 30, 32, 28, 25], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.45 }, { label: 'الرطوبة', data: [55, 50, 45, 48, 52, 58], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.45 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } }, scales: { x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }); const carsCtx = document.getElementById('carsMovementChart').getContext('2d'); carsMovementChart = new Chart(carsCtx, { type: 'bar', data: { labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'], datasets: [{ label: 'عدد السيارات', data: [45, 52, 38, 60, 55, 48, 35], backgroundColor: 'rgba(0,212,255,0.7)', borderColor: '#00d4ff', borderWidth: 2, borderRadius: 10 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'white' }, grid: { display: false } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } } }); const alertsCtx = document.getElementById('alertsDistributionChart').getContext('2d'); alertsDistributionChart = new Chart(alertsCtx, { type: 'pie', data: { labels: ['حريق', 'غاز', 'اهتزاز', 'حرارة'], datasets: [{ data: [2, 5, 3, 1], backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } }); }
-        function updateCharts() { if (occupancyChart) { occupancyChart.data.datasets[0].data = [garageData.carsCount, garageData.maxCars - garageData.carsCount]; occupancyChart.update(); } }
-        function showReport(type) { ['Daily', 'Weekly', 'Monthly'].forEach(t => { document.getElementById('report' + t).className = t.toLowerCase() === type ? 'btn btn-primary justify-center' : 'btn btn-secondary justify-center'; }); const mult = { daily: 1, weekly: 7, monthly: 30 }[type] || 1; document.getElementById('reportTotalCars').textContent = Math.floor(Math.random() * 100 * mult); document.getElementById('reportRevenue').textContent = Math.floor(Math.random() * 1000 * mult); document.getElementById('reportAlerts').textContent = Math.floor(Math.random() * 20 * mult); document.getElementById('reportAvgTime').textContent = Math.floor(Math.random() * 60); }
+        // ============ GATE CONTROL ============
+        function connectToFirebase() {
+            if (!firebaseInitialized) return;
+            database.ref('garage').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) garageData = { ...garageData, ...data };
+                updateUI();
+            });
+        }
+
+        function sendCommand(command, value) {
+            if (firebaseInitialized) database.ref('commands').update({ [command]: value });
+            handleLocalCommand(command, value);
+        }
+
+        function handleLocalCommand(command, value) {
+            const names = { 'entryGate': 'بوابة الدخول', 'exitGate': 'بوابة الخروج', 'securityDoor': 'باب غرفة الأمان' };
+            if (value) setTimeout(() => sendCommand(command, false), 5000);
+            addGateLog(command, value);
+            updateGateUI(command, value);
+            showToast('تم ' + (value ? 'فتح' : 'إغلاق') + ' ' + names[command], 'success');
+        }
+
+        function toggleGate(gate) {
+            const map = { 'entry': 'entryGate', 'exit': 'exitGate', 'security': 'securityDoor' };
+            sendCommand(map[gate], !garageData[map[gate]]);
+        }
+
+        function updateGateUI(gate, isOpen) {
+            ['entry', 'exit', 'security'].forEach(g => {
+                const statusEl = document.getElementById(g + 'Status');
+                const btnEl = document.getElementById(g + 'Btn');
+                const visualEl = document.getElementById(g + 'Gate');
+                const iconEl = document.getElementById(g + 'Icon');
+
+                if (statusEl) {
+                    statusEl.className = 'status-badge ' + (isOpen ? 'status-offline' : 'status-online');
+                    statusEl.innerHTML = '<span>' + (isOpen ? 'بوابة مفتوحة' : 'بوابة مغلقة') + '</span>';
+                }
+                if (btnEl) {
+                    btnEl.innerHTML = isOpen ?
+                        '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg><span>إغلاق</span>' :
+                        '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg><span>فتح</span>';
+                }
+                if (visualEl) visualEl.classList.toggle('gate-open', isOpen);
+                if (iconEl) iconEl.textContent = isOpen ? '✅' : '🚫';
+            });
+        }
+
+        function addGateLog(gate, action) {
+            const names = { 'entryGate': 'بوابة الدخول', 'exitGate': 'بوابة الخروج', 'securityDoor': 'باب غرفة الأمان' };
+            gateLogs.unshift({ time: new Date().toLocaleTimeString('ar-SA'), gate: names[gate], action: action ? 'فتح' : 'إغلاق', user: currentUser ? currentUser.name : 'نظام' });
+            if (gateLogs.length > 20) gateLogs.pop();
+            renderGateLogs();
+        }
+
+        function renderGateLogs() {
+            const c = document.getElementById('gateLogs');
+            if (!c) return;
+            if (gateLogs.length === 0) {
+                c.innerHTML = '<p class="text-gray-400 text-center py-8">لا توجد عمليات مسجلة</p>';
+                return;
+            }
+            c.innerHTML = gateLogs.map(log => `<div class="event-item gate"><div class="flex justify-between items-center"><span class="font-semibold text-white">${log.gate}</span><span class="text-sm text-gray-400">${log.time}</span></div><p class="text-sm text-gray-300">${log.action} بواسطة ${log.user}</p></div>`).join('');
+        }
+
+        // ============ UI UPDATES ============
+        function updateUI() {
+            const carsCountEl = document.getElementById('carsCount');
+            const maxCarsEl = document.getElementById('maxCars');
+            const tempEl = document.getElementById('temperature');
+            const humidityEl = document.getElementById('humidity');
+            const headerTempEl = document.getElementById('headerTemp');
+            const availableSpotsEl = document.getElementById('availableSpots');
+            const occupancyBarEl = document.getElementById('occupancyBar');
+            const tempStatusEl = document.getElementById('tempStatus');
+            const lastUpdateEl = document.getElementById('lastUpdate');
+
+            if (carsCountEl) carsCountEl.textContent = garageData.carsCount;
+            if (maxCarsEl) maxCarsEl.textContent = garageData.maxCars;
+            if (tempEl) tempEl.textContent = garageData.temperature;
+            if (humidityEl) humidityEl.textContent = garageData.humidity;
+            if (headerTempEl) headerTempEl.textContent = garageData.temperature + '°C';
+            if (availableSpotsEl) availableSpotsEl.textContent = garageData.maxCars - garageData.carsCount;
+
+            const occ = (garageData.carsCount / garageData.maxCars) * 100;
+            if (occupancyBarEl) occupancyBarEl.style.width = occ + '%';
+
+            if (tempStatusEl) {
+                if (garageData.temperature > settings.tempThreshold) {
+                    tempStatusEl.textContent = 'خطر!';
+                    tempStatusEl.className = 'text-xs px-4 py-2 bg-red-500/18 text-red-400 rounded-full';
+                } else if (garageData.temperature > 35) {
+                    tempStatusEl.textContent = 'حار';
+                    tempStatusEl.className = 'text-xs px-4 py-2 bg-yellow-500/18 text-yellow-400 rounded-full';
+                } else {
+                    tempStatusEl.textContent = 'معتدل';
+                    tempStatusEl.className = 'text-xs px-4 py-2 bg-green-500/18 text-green-400 rounded-full';
+                }
+            }
+
+            if (lastUpdateEl) lastUpdateEl.textContent = new Date().toLocaleTimeString('ar-SA');
+            updateGateUI('entry', garageData.entryGate);
+            updateGateUI('exit', garageData.exitGate);
+            updateGateUI('security', garageData.securityDoor);
+            updateCharts();
+        }
+
+        function updateSensorsUI() {
+            const updateSensor = (id, value, time, alert) => {
+                const vEl = document.getElementById(id + 'Value');
+                const tEl = document.getElementById(id + 'Time');
+                const sEl = document.getElementById(id + 'Status');
+                if (vEl) vEl.textContent = value;
+                if (tEl) tEl.textContent = time;
+                if (sEl) {
+                    sEl.className = 'status-badge ' + (alert ? 'status-danger' : 'status-online');
+                    sEl.innerHTML = '<span>' + (alert ? 'خطر!' : 'آمن') + '</span>';
+                }
+            };
+
+            updateSensor('irEntry', garageData.irEntry ? '✓ سيارة' : 'لا يوجد', garageData.irEntry ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.irEntry);
+            updateSensor('irExit', garageData.irExit ? '✓ سيارة' : 'لا يوجد', garageData.irExit ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.irExit);
+            updateSensor('flame', garageData.flameAlert ? '⚠ حريق!' : 'طبيعي', garageData.flameAlert ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.flameAlert);
+
+            const gasPct = Math.min((garageData.gasLevel / settings.gasThreshold) * 100, 100);
+            const gasBarEl = document.getElementById('gasBar');
+            const gasValueEl = document.getElementById('gasValue');
+            const gasThresholdEl = document.getElementById('gasThreshold');
+            if (gasBarEl) gasBarEl.style.width = gasPct + '%';
+            if (gasValueEl) gasValueEl.textContent = garageData.gasLevel;
+            if (gasThresholdEl) gasThresholdEl.textContent = settings.gasThreshold;
+
+            updateSensor('gas', garageData.gasLevel + ' ppm', '--:--', garageData.gasLevel > settings.gasThreshold);
+            updateSensor('vibration', garageData.vibrationAlert ? '⚠ اهتزاز!' : 'لا يوجد', garageData.vibrationAlert ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.vibrationAlert);
+
+            const dhtTempEl = document.getElementById('dhtTemp');
+            const dhtHumidityEl = document.getElementById('dhtHumidity');
+            if (dhtTempEl) dhtTempEl.textContent = garageData.temperature + '°';
+            if (dhtHumidityEl) dhtHumidityEl.textContent = garageData.humidity + '%';
+
+            updateSensorsGrid();
+        }
+
+        function updateSensorsGrid() {
+            const sensors = [
+                { name: 'IR Entry', status: garageData.irEntry ? 'warning' : 'safe', icon: '🚗' },
+                { name: 'IR Exit', status: garageData.irExit ? 'warning' : 'safe', icon: '🚗' },
+                { name: 'Flame', status: garageData.flameAlert ? 'danger' : 'safe', icon: '🔥' },
+                { name: 'Gas', status: garageData.gasLevel > settings.gasThreshold ? 'danger' : 'safe', icon: '💨' },
+                { name: 'Vibration', status: garageData.vibrationAlert ? 'danger' : 'safe', icon: '📳' },
+                { name: 'Temp', status: garageData.temperature > settings.tempThreshold ? 'warning' : 'safe', icon: '🌡️' },
+                { name: 'Humidity', status: 'safe', icon: '💧' }
+            ];
+            const colors = { safe: 'bg-green-500', warning: 'bg-yellow-500', danger: 'bg-red-500' };
+            const gridEl = document.getElementById('sensorsStatusGrid');
+            if (gridEl) {
+                gridEl.innerHTML = sensors.map(s => `<div class="flex flex-col items-center p-4 bg-white/5 rounded-xl"><span class="text-2xl mb-2">${s.icon}</span><span class="text-xs text-gray-300">${s.name}</span><span class="w-4 h-4 rounded-full ${colors[s.status]} mt-2 ${s.status === 'danger' ? 'animate-pulse' : ''}"></span></div>`).join('');
+            }
+        }
+
+        // ============ PARKING ============
+        function initializeParkingGrid() {
+            const grid = document.getElementById('parkingGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const spot = document.createElement('div');
+                spot.className = 'parking-spot available';
+                spot.innerHTML = `<span class="number">${i + 1}</span><span class="status">متاح</span>`;
+                spot.onclick = () => selectSpot(i + 1);
+                grid.appendChild(spot);
+            }
+            updateParkingGrid();
+        }
+
+        function updateParkingGrid() {
+            const spots = document.querySelectorAll('.parking-spot');
+            const statuses = { available: ['متاح', 'green-500'], occupied: ['مشغول', 'red-500'], booked: ['محجوز', 'yellow-500'] };
+            spots.forEach((spot, i) => {
+                spot.className = 'parking-spot ' + garageData.parkingSpots[i];
+                const [text, color] = Object.values(statuses[garageData.parkingSpots[i]]);
+                spot.innerHTML = `<span class="number">${i + 1}</span><span class="status" style="color: var(--${color})">${text}</span>`;
+            });
+        }
+
+        function selectSpot(num) {
+            if (garageData.parkingSpots[num - 1] !== 'available') {
+                showToast('هذا الموقف غير متاح', 'warning');
+                return;
+            }
+            const bookingSpotEl = document.getElementById('bookingSpot');
+            if (bookingSpotEl) bookingSpotEl.value = num;
+            document.querySelectorAll('.parking-spot').forEach((s, i) => s.classList.toggle('selected', i === num - 1));
+        }
+
+        function handleBooking(e) {
+            e.preventDefault();
+            const spot = parseInt(document.getElementById('bookingSpot').value);
+            const car = document.getElementById('bookingCarNumber').value;
+            const time = document.getElementById('bookingTime').value;
+            const endTime = document.getElementById('bookingEndTime').value;
+
+            if (!spot || !car || !time) {
+                showToast('يرجى ملء جميع الحقول', 'warning');
+                return;
+            }
+
+            bookings.push({ spotNumber: spot, carNumber: car, startTime: new Date(time).toISOString(), endTime: endTime ? new Date(endTime).toISOString() : null, status: 'active', user: currentUser ? currentUser.name : 'زائر' });
+            garageData.parkingSpots[spot - 1] = 'booked';
+            garageData.carsCount++;
+            updateParkingGrid();
+            updateUI();
+            renderActiveBookings();
+            document.getElementById('bookingForm').reset();
+            showToast('تم الحجز بنجاح!', 'success');
+            addEvent('حجز جديد - موقف ' + spot, 'entry');
+        }
+
+        function renderActiveBookings() {
+            const c = document.getElementById('activeBookings');
+            if (!c) return;
+            const active = bookings.filter(b => b.status === 'active');
+            if (active.length === 0) {
+                c.innerHTML = '<p class="text-gray-400 text-center py-8">لا توجد حجوزات نشطة</p>';
+                return;
+            }
+            c.innerHTML = active.map((b, i) => `<div class="flex justify-between items-center p-5 bg-white/5 rounded-xl"><div><p class="font-bold text-white">موقف #${b.spotNumber}</p><p class="text-sm text-gray-400">${b.carNumber}</p></div><div class="text-left"><p class="text-sm text-gray-400">${b.user}</p><button onclick="cancelBooking(${i})" class="text-red-400 hover:text-red-300 text-sm mt-1">إلغاء</button></div></div>`).join('');
+        }
+
+        function cancelBooking(i) {
+            const b = bookings[i];
+            garageData.parkingSpots[b.spotNumber - 1] = 'available';
+            bookings[i].status = 'cancelled';
+            updateParkingGrid();
+            updateUI();
+            renderActiveBookings();
+            showToast('تم إلغاء الحجز', 'success');
+        }
+
+        // ============ CHARTS ============
+        function initializeCharts() {
+            const occCtx = document.getElementById('occupancyChart');
+            const tempCtx = document.getElementById('tempHumidityChart');
+            const carsCtx = document.getElementById('carsMovementChart');
+            const alertsCtx = document.getElementById('alertsDistributionChart');
+
+            if (occCtx) {
+                occupancyChart = new Chart(occCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: { labels: ['مشغول', 'متاح'], datasets: [{ data: [garageData.carsCount, garageData.maxCars - garageData.carsCount], backgroundColor: ['#00d4ff', 'rgba(255,255,255,0.1)'], borderColor: ['#00d4ff', 'rgba(255,255,255,0.2)'], borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } }
+                });
+            }
+
+            if (tempCtx) {
+                tempHumidityChart = new Chart(tempCtx.getContext('2d'), {
+                    type: 'line',
+                    data: { labels: ['6 ص', '9 ص', '12 م', '3 م', '6 م', '9 م'], datasets: [{ label: 'الحرارة', data: [24, 26, 30, 32, 28, 25], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.45 }, { label: 'الرطوبة', data: [55, 50, 45, 48, 52, 58], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.45 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } }, scales: { x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
+                });
+            }
+
+            if (carsCtx) {
+                carsMovementChart = new Chart(carsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'], datasets: [{ label: 'عدد السيارات', data: [45, 52, 38, 60, 55, 48, 35], backgroundColor: 'rgba(0,212,255,0.7)', borderColor: '#00d4ff', borderWidth: 2, borderRadius: 10 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'white' }, grid: { display: false } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
+                });
+            }
+
+            if (alertsCtx) {
+                alertsDistributionChart = new Chart(alertsCtx.getContext('2d'), {
+                    type: 'pie',
+                    data: { labels: ['حريق', 'غاز', 'اهتزاز', 'حرارة'], datasets: [{ data: [2, 5, 3, 1], backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } }
+                });
+            }
+        }
+
+        function updateCharts() {
+            if (occupancyChart) { occupancyChart.data.datasets[0].data = [garageData.carsCount, garageData.maxCars - garageData.carsCount]; occupancyChart.update(); }
+        }
+
+        function showReport(type) {
+            ['Daily', 'Weekly', 'Monthly'].forEach(t => {
+                const btn = document.getElementById('report' + t);
+                if (btn) btn.className = t.toLowerCase() === type ? 'btn btn-primary justify-center' : 'btn btn-secondary justify-center';
+            });
+            const mult = { daily: 1, weekly: 7, monthly: 30 }[type] || 1;
+            const totalCarsEl = document.getElementById('reportTotalCars');
+            const revenueEl = document.getElementById('reportRevenue');
+            const alertsEl = document.getElementById('reportAlerts');
+            const avgTimeEl = document.getElementById('reportAvgTime');
+            if (totalCarsEl) totalCarsEl.textContent = Math.floor(Math.random() * 100 * mult);
+            if (revenueEl) revenueEl.textContent = Math.floor(Math.random() * 1000 * mult);
+            if (alertsEl) alertsEl.textContent = Math.floor(Math.random() * 20 * mult);
+            if (avgTimeEl) avgTimeEl.textContent = Math.floor(Math.random() * 60);
+        }
+
         function exportPDF() { showToast('جاري تصدير التقرير كـ PDF...', 'warning'); setTimeout(() => showToast('تم تصدير التقرير بنجاح!', 'success'), 2000); }
         function exportExcel() { showToast('جاري تصدير البيانات كـ Excel...', 'warning'); setTimeout(() => showToast('تم تصدير البيانات بنجاح!', 'success'), 2000); }
 
-        function toggleSetting(setting) { const toggle = document.getElementById(setting + 'Toggle'); settings[setting] = !settings[setting]; toggle.classList.toggle('active', settings[setting]); if (setting === 'browserNotif' && settings[setting]) requestNotificationPermission(); }
-        function updateThreshold(type, value) { if (type === 'gas') { settings.gasThreshold = parseInt(value); document.getElementById('gasThreshold').textContent = value; } else if (type === 'temp') settings.tempThreshold = parseInt(value); showToast('تم تحديث الحد بنجاح', 'success'); }
-        function resetData() { if (!confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) return; garageData = { carsCount: 0, maxCars: 20, temperature: 25, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, parkingSpots: Array(20).fill('available') }; events = []; bookings = []; gateLogs = []; updateUI(); updateSensorsUI(); initializeParkingGrid(); renderActiveBookings(); renderGateLogs(); renderEvents(); showToast('تم إعادة تعيين جميع البيانات', 'success'); }
+        // ============ SETTINGS ============
+        function toggleSetting(setting) {
+            const toggle = document.getElementById(setting + 'Toggle');
+            if (toggle) {
+                settings[setting] = !settings[setting];
+                toggle.classList.toggle('active', settings[setting]);
+                if (setting === 'browserNotif' && settings[setting]) requestNotificationPermission();
+            }
+        }
 
-        function requestNotificationPermission() { if ('Notification' in window) { Notification.requestPermission().then(p => { if (p === 'granted') { settings.browserNotif = true; document.getElementById('browserNotifToggle').classList.add('active'); showToast('تم تفعيل الإشعارات!', 'success'); } else showToast('تم رفض تفعيل الإشعارات', 'warning'); }); } else showToast('المتصفح لا يدعم الإشعارات', 'warning'); }
-        function triggerAlert(type, message) { const banner = document.getElementById('alertBanner'); const icons = { fire: '🔥', gas: '💨', vibration: '📳', temperature: '🌡️' }; document.getElementById('alertIcon').textContent = icons[type] || '⚠️'; document.getElementById('alertMessage').textContent = message; banner.className = 'alert-banner danger'; banner.style.display = 'flex'; if (settings.sound) playAlertSound(type); if (settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]); if (settings.browserNotif && Notification.permission === 'granted') new Notification('🚨 تنبيه الكراج الذكي!', { body: message, icon: '🚗' }); setTimeout(() => hideAlertBanner(), 10000); }
-        function hideAlertBanner() { document.getElementById('alertBanner').style.display = 'none'; }
-        function playAlertSound(type) { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.frequency.value = type === 'fire' ? 800 : 600; osc.type = 'square'; gain.gain.value = 0.12; osc.start(); setTimeout(() => osc.stop(), 600); }
-        function showToast(message, type = 'success') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = message; c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; setTimeout(() => t.remove(), 350); }, 3500); }
+        function updateThreshold(type, value) {
+            if (type === 'gas') { settings.gasThreshold = parseInt(value);
+                const gasThresholdEl = document.getElementById('gasThreshold');
+                if (gasThresholdEl) gasThresholdEl.textContent = value;
+            } else if (type === 'temp') settings.tempThreshold = parseInt(value);
+            showToast('تم تحديث الحد بنجاح', 'success');
+        }
 
-        function addEvent(message, type = 'info') { events.unshift({ time: new Date().toLocaleTimeString('ar-SA'), message, type }); if (events.length > 20) events.pop(); renderEvents(); }
-        function renderEvents() { const c = document.getElementById('eventsList'); if (events.length === 0) { c.innerHTML = '<p class="text-gray-400 text-center py-8">لا توجد أحداث حتى الآن</p>'; return; } const icons = { entry: '🚗', exit: '🚪', alert: '🚨', gate: '🚧', booking: '📝', info: 'ℹ️' }; c.innerHTML = events.map(e => `<div class="event-item ${e.type}"><div class="flex justify-between items-center"><span class="text-xl">${icons[e.type] || 'ℹ️'}</span><span class="text-sm text-gray-400">${e.time}</span></div><p class="text-white mt-2">${e.message}</p></div>`).join(''); }
+        function resetData() {
+            if (!confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) return;
+            garageData = { carsCount: 0, maxCars: 20, temperature: 25, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, parkingSpots: Array(20).fill('available') };
+            events = []; bookings = []; gateLogs = [];
+            updateUI(); updateSensorsUI(); initializeParkingGrid(); renderActiveBookings(); renderGateLogs(); renderEvents();
+            showToast('تم إعادة تعيين جميع البيانات', 'success');
+        }
 
-        function startSimulation() { setInterval(() => { garageData.temperature = Math.floor(Math.random() * 15) + 20; garageData.humidity = Math.floor(Math.random() * 40) + 30; garageData.gasLevel = Math.floor(Math.random() * 200); if (Math.random() > 0.95) { garageData.irEntry = true; addEvent('تم استشعار سيارة عند البوابة', 'entry'); setTimeout(() => { garageData.irEntry = false; garageData.carsCount = Math.min(garageData.carsCount + 1, garageData.maxCars); garageData.parkingSpots[garageData.carsCount - 1] = 'occupied'; addEvent('دخلت سيارة رقم ' + garageData.carsCount, 'entry'); updateUI(); updateParkingGrid(); }, 2500); } updateUI(); updateSensorsUI(); }, 6000); addEvent('تم تشغيل نظام الكراج الذكي', 'info'); addEvent('جميع المستشعرات تعمل بشكل طبيعية', 'info'); }
-        function initializeApp() { if (currentTab === 'reports') initializeCharts(); initializeParkingGrid(); updateSensorsUI(); connectToFirebase(); if (!firebaseInitialized) { startSimulation(); document.getElementById('firebaseStatus').className = 'status-badge status-offline'; document.getElementById('firebaseStatus').innerHTML = '<span>محاكاة</span>'; } updateUI(); renderEvents(); renderGateLogs(); renderActiveBookings(); if ('Notification' in window && Notification.permission === 'default') document.getElementById('notifBtn').style.display = 'flex'; }
-        document.addEventListener('DOMContentLoaded', () => { const saved = localStorage.getItem('garageUser'); if (saved) { currentUser = JSON.parse(saved); document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; document.getElementById('userRoleIcon').textContent = roleIcons[currentUser.role]; document.getElementById('userRoleName').textContent = currentUser.name; updatePermissions(); initializeApp(); } });
+        // ============ NOTIFICATIONS ============
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(p => {
+                    if (p === 'granted') { settings.browserNotif = true;
+                        const notifToggle = document.getElementById('browserNotifToggle');
+                        if (notifToggle) notifToggle.classList.add('active');
+                        showToast('تم تفعيل الإشعارات!', 'success');
+                    } else showToast('تم رفض تفعيل الإشعارات', 'warning');
+                });
+            } else showToast('المتصفح لا يدعم الإشعارات', 'warning');
+        }
+
+        function triggerAlert(type, message) {
+            const banner = document.getElementById('alertBanner');
+            const iconEl = document.getElementById('alertIcon');
+            const msgEl = document.getElementById('alertMessage');
+            const icons = { fire: '🔥', gas: '💨', vibration: '📳', temperature: '🌡️' };
+            if (iconEl) iconEl.textContent = icons[type] || '⚠️';
+            if (msgEl) msgEl.textContent = message;
+            if (banner) { banner.className = 'alert-banner danger'; banner.style.display = 'flex'; }
+            if (settings.sound) playAlertSound(type);
+            if (settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            if (settings.browserNotif && Notification.permission === 'granted') new Notification('🚨 تنبيه الكراج الذكي!', { body: message, icon: '🚗' });
+            setTimeout(() => hideAlertBanner(), 10000);
+        }
+
+        function hideAlertBanner() {
+            const banner = document.getElementById('alertBanner');
+            if (banner) banner.style.display = 'none';
+        }
+
+        function playAlertSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = type === 'fire' ? 800 : 600;
+                osc.type = 'square';
+                gain.gain.value = 0.12;
+                osc.start();
+                setTimeout(() => osc.stop(), 600);
+            } catch(e) { console.log('Audio not supported'); }
+        }
+
+        function showToast(message, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            if (!c) return;
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.textContent = message;
+            c.appendChild(t);
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateY(20px)';
+                setTimeout(() => t.remove(), 350);
+            }, 3500);
+        }
+
+        // ============ EVENTS ============
+        function addEvent(message, type = 'info') {
+            events.unshift({ time: new Date().toLocaleTimeString('ar-SA'), message, type });
+            if (events.length > 20) events.pop();
+            renderEvents();
+        }
+
+        function renderEvents() {
+            const c = document.getElementById('eventsList');
+            if (!c) return;
+            if (events.length === 0) {
+                c.innerHTML = '<p class="text-gray-400 text-center py-8">لا توجد أحداث حتى الآن</p>';
+                return;
+            }
+            const icons = { entry: '🚗', exit: '🚪', alert: '🚨', gate: '🚧', booking: '📝', info: 'ℹ️' };
+            c.innerHTML = events.map(e => `<div class="event-item ${e.type}"><div class="flex justify-between items-center"><span class="text-xl">${icons[e.type] || 'ℹ️'}</span><span class="text-sm text-gray-400">${e.time}</span></div><p class="text-white mt-2">${e.message}</p></div>`).join('');
+        }
+
+        // ============ SIMULATION ============
+        function startSimulation() {
+            setInterval(() => {
+                garageData.temperature = Math.floor(Math.random() * 15) + 20;
+                garageData.humidity = Math.floor(Math.random() * 40) + 30;
+                garageData.gasLevel = Math.floor(Math.random() * 200);
+                if (Math.random() > 0.95) {
+                    garageData.irEntry = true;
+                    addEvent('تم استشعار سيارة عند البوابة', 'entry');
+                    setTimeout(() => {
+                        garageData.irEntry = false;
+                        garageData.carsCount = Math.min(garageData.carsCount + 1, garageData.maxCars);
+                        garageData.parkingSpots[garageData.carsCount - 1] = 'occupied';
+                        addEvent('دخلت سيارة رقم ' + garageData.carsCount, 'entry');
+                        updateUI();
+                        updateParkingGrid();
+                    }, 2500);
+                }
+                updateUI();
+                updateSensorsUI();
+            }, 6000);
+            addEvent('تم تشغيل نظام الكراج الذكي', 'info');
+            addEvent('جميع المستشعرات تعمل بشكل طبيعية', 'info');
+        }
+
+        function initializeApp() {
+            if (currentTab === 'reports') initializeCharts();
+            initializeParkingGrid();
+            updateSensorsUI();
+            connectToFirebase();
+            if (!firebaseInitialized) {
+                startSimulation();
+                const firebaseStatusEl = document.getElementById('firebaseStatus');
+                if (firebaseStatusEl) { firebaseStatusEl.className = 'status-badge status-offline'; firebaseStatusEl.innerHTML = '<span>محاكاة</span>'; }
+            }
+            updateUI();
+            renderEvents();
+            renderGateLogs();
+            renderActiveBookings();
+            if ('Notification' in window && Notification.permission === 'default') {
+                const notifBtn = document.getElementById('notifBtn');
+                if (notifBtn) notifBtn.style.display = 'flex';
+            }
+        }
+
         function toggleFab() { document.querySelector('.fab-menu')?.classList.toggle('active'); }
 
-        // New Feature Functions
+        // ============ NEW FEATURES ============
         let cameraVisible = false;
         let quickActionsVisible = false;
         let uptimeSeconds = 0;
@@ -960,6 +1456,482 @@
             }
         };
     </script>
+
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
+</script>
 
 <script>
 /**
