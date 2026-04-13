@@ -642,15 +642,15 @@
                         </div>
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Uptime</span>
+                                <span class="text-gray-400">وقت التشغيل</span>
                                 <span id="megaUptime" class="text-cyan-400 font-mono">00:00:00</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Memory</span>
-                                <span id="megaMemory" class="text-green-400">8 KB</span>
+                                <span class="text-gray-400">SRAM</span>
+                                <span id="megaMemory" class="text-green-400">4.2 / 8 KB</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">CPU Load</span>
+                                <span class="text-gray-400">حمل المعالج</span>
                                 <span id="megaCpuLoad" class="text-yellow-400">12%</span>
                             </div>
                             <div class="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -675,24 +675,24 @@
                         </div>
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">WiFi Signal</span>
+                                <span class="text-gray-400">قوة الإشارة</span>
                                 <span id="wifiStrength" class="text-purple-400 font-mono">-45 dBm</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">RSSI</span>
-                                <div class="flex gap-0.5">
-                                    <div class="w-1 h-4 bg-green-400 rounded-full"></div>
-                                    <div class="w-1 h-5 bg-green-400 rounded-full"></div>
-                                    <div class="w-1 h-6 bg-green-400 rounded-full"></div>
-                                    <div class="w-1 h-3 bg-gray-600 rounded-full"></div>
+                                <span class="text-gray-400">جودة الاتصال</span>
+                                <div id="rssiBars" class="flex gap-0.5 items-end">
+                                    <div class="w-1.5 h-3 bg-green-400 rounded-full"></div>
+                                    <div class="w-1.5 h-4 bg-green-400 rounded-full"></div>
+                                    <div class="w-1.5 h-5 bg-green-400 rounded-full"></div>
+                                    <div class="w-1.5 h-6 bg-gray-600 rounded-full"></div>
                                 </div>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Latency</span>
+                                <span class="text-gray-400">زمن الاستجابة</span>
                                 <span id="wifiLatency" class="text-green-400">24 ms</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Mode</span>
+                                <span class="text-gray-400">الوضع</span>
                                 <span class="text-purple-400">STA</span>
                             </div>
                         </div>
@@ -714,19 +714,19 @@
                         </div>
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Database</span>
+                                <span class="text-gray-400">قاعدة البيانات</span>
                                 <span class="text-green-400 truncate max-w-32 text-xs">my-systim...</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Last Sync</span>
+                                <span class="text-gray-400">آخر مزامنة</span>
                                 <span id="firebaseLastSync" class="text-orange-400 text-xs">--:--:--</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Data Sent</span>
+                                <span class="text-gray-400">بيانات مرسلة</span>
                                 <span id="dataSent" class="text-cyan-400">0 KB</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Data Received</span>
+                                <span class="text-gray-400">بيانات مستقبلة</span>
                                 <span id="dataReceived" class="text-cyan-400">0 KB</span>
                             </div>
                         </div>
@@ -993,7 +993,8 @@
             mega2560: { connected: true, uptime: 0, lastHeartbeat: Date.now() },
             esp8266: { connected: true, wifiStrength: -45, lastPing: Date.now() },
             firebase: { connected: false, lastSync: Date.now() },
-            systemMetrics: { cpuLoad: 0, memory: 0, latency: 0 }
+            systemMetrics: { cpuLoad: 0, memory: 0, latency: 0 },
+            dataCounters: { totalSentKB: 0, totalReceivedKB: 0 }
         };
         let systemStartTime = Date.now();
         let simulationInterval;
@@ -1153,13 +1154,18 @@
             // Initialize IoT logs
             const logsEl = document.getElementById('iotLogs');
             if (logsEl && logsEl.querySelector('p')) {
-                addIoTLog('🚀 تم تهيئة لوحة IoT', 'success');
-                addIoTLog('📡 جاري الاتصال بـ Mega 2560...', 'info');
-                setTimeout(() => addIoTLog('✓ Mega 2560 متصل', 'success'), 500);
-                setTimeout(() => addIoTLog('📶 جاري الاتصال بـ ESP8266...', 'info'), 1000);
-                setTimeout(() => addIoTLog('✓ ESP8266 متصل', 'success'), 1500);
-                setTimeout(() => addIoTLog('☁️ جاري الاتصال بـ Firebase...', 'info'), 2000);
-                setTimeout(() => addIoTLog('✓ Firebase متصل - الوضع: محاكاة', 'warning'), 2500);
+                addIoTLog('تم تهيئة لوحة IoT', 'success');
+                addIoTLog('جاري الاتصال بـ Mega 2560...', 'info');
+                setTimeout(() => addIoTLog('Mega 2560 متصل - SRAM: 8 KB', 'success'), 500);
+                setTimeout(() => addIoTLog('جاري الاتصال بـ ESP8266...', 'info'), 1000);
+                setTimeout(() => addIoTLog('ESP8266 متصل - وضع STA', 'success'), 1500);
+                setTimeout(() => addIoTLog('جاري الاتصال بـ Firebase...', 'info'), 2000);
+                setTimeout(() => {
+                    addIoTLog('Firebase - الوضع: محاكاة', 'warning');
+                    // Update Firebase badge to show simulation mode
+                    const fbBadge = document.getElementById('firebaseStatusBadge');
+                    if (fbBadge) { fbBadge.className = 'status-badge status-offline'; fbBadge.innerHTML = '<span>محاكاة</span>'; }
+                }, 2500);
             }
 
             // Start simulation
@@ -1198,7 +1204,7 @@
 
         function startIoTSimulation() {
             simulationInterval = setInterval(() => {
-                // Update Mega 2560 stats
+                // Update Mega 2560 uptime
                 const uptime = Math.floor((Date.now() - systemStartTime) / 1000);
                 const hours = Math.floor(uptime / 3600);
                 const minutes = Math.floor((uptime % 3600) / 60);
@@ -1206,38 +1212,70 @@
                 document.getElementById('megaUptime').textContent =
                     `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-                // Simulate CPU load
-                const cpuLoad = Math.floor(Math.random() * 20) + 5;
+                // Realistic CPU load - fluctuates slowly around 8-18% for Mega 2560 with sensors
+                iotState.systemMetrics.cpuLoad += (Math.random() - 0.5) * 4;
+                iotState.systemMetrics.cpuLoad = Math.max(5, Math.min(25, iotState.systemMetrics.cpuLoad));
+                const cpuLoad = Math.round(iotState.systemMetrics.cpuLoad);
                 document.getElementById('megaCpuLoad').textContent = cpuLoad + '%';
                 document.getElementById('megaLoadBar').style.width = cpuLoad + '%';
 
-                // Update WiFi stats
-                const wifiStrength = -Math.floor(Math.random() * 30) - 35;
-                document.getElementById('wifiStrength').textContent = wifiStrength + ' dBm';
+                // Realistic SRAM usage - Mega 2560 has 8KB SRAM, typical usage 3.5-5.5 KB
+                iotState.systemMetrics.memory += (Math.random() - 0.5) * 0.3;
+                iotState.systemMetrics.memory = Math.max(3.2, Math.min(5.8, iotState.systemMetrics.memory));
+                const memUsed = iotState.systemMetrics.memory.toFixed(1);
+                const memEl = document.getElementById('megaMemory');
+                memEl.textContent = memUsed + ' / 8 KB';
+                memEl.className = parseFloat(memUsed) > 5.5 ? 'text-red-400' : parseFloat(memUsed) > 4.5 ? 'text-yellow-400' : 'text-green-400';
 
-                // Update latency
-                const latency = Math.floor(Math.random() * 30) + 15;
-                document.getElementById('wifiLatency').textContent = latency + ' ms';
+                // WiFi signal - realistic range for indoor ESP8266: -30 to -75 dBm
+                iotState.esp8266.wifiStrength += (Math.random() - 0.5) * 5;
+                iotState.esp8266.wifiStrength = Math.max(-75, Math.min(-30, iotState.esp8266.wifiStrength));
+                const wifiStr = Math.round(iotState.esp8266.wifiStrength);
+                document.getElementById('wifiStrength').textContent = wifiStr + ' dBm';
 
-                // Update Firebase sync time
+                // Update RSSI bars based on signal strength
+                const rssiBars = document.getElementById('rssiBars');
+                if (rssiBars) {
+                    const bars = rssiBars.children;
+                    const signalPercent = Math.max(0, Math.min(100, ((wifiStr + 80) / 50) * 100));
+                    const activeBars = signalPercent > 75 ? 4 : signalPercent > 50 ? 3 : signalPercent > 25 ? 2 : 1;
+                    for (let i = 0; i < bars.length; i++) {
+                        bars[i].className = i < activeBars
+                            ? 'w-1.5 rounded-full transition-all duration-500 ' + (activeBars >= 3 ? 'bg-green-400' : activeBars >= 2 ? 'bg-yellow-400' : 'bg-red-400')
+                            : 'w-1.5 rounded-full transition-all duration-500 bg-gray-600';
+                    }
+                }
+
+                // Latency - realistic for Palestine WiFi: 15-80ms
+                iotState.systemMetrics.latency += (Math.random() - 0.5) * 10;
+                iotState.systemMetrics.latency = Math.max(15, Math.min(80, iotState.systemMetrics.latency));
+                const latency = Math.round(iotState.systemMetrics.latency);
+                const latencyEl = document.getElementById('wifiLatency');
+                latencyEl.textContent = latency + ' ms';
+                latencyEl.className = latency > 60 ? 'text-red-400' : latency > 35 ? 'text-yellow-400' : 'text-green-400';
+
+                // Firebase sync time
                 document.getElementById('firebaseLastSync').textContent =
                     new Date().toLocaleTimeString('ar-SA');
 
-                // Update data counters
-                const dataSent = Math.floor(Math.random() * 100) + 50;
-                const dataReceived = Math.floor(Math.random() * 80) + 40;
-                document.getElementById('dataSent').textContent = dataSent + ' KB';
-                document.getElementById('dataReceived').textContent = dataReceived + ' KB';
+                // Data counters - accumulate realistically (each sensor update ~0.2-0.5 KB)
+                const packetSize = 0.2 + Math.random() * 0.3;
+                iotState.dataCounters.totalSentKB += packetSize;
+                iotState.dataCounters.totalReceivedKB += packetSize * 0.6;
+                document.getElementById('dataSent').textContent = iotState.dataCounters.totalSentKB.toFixed(1) + ' KB';
+                document.getElementById('dataReceived').textContent = iotState.dataCounters.totalReceivedKB.toFixed(1) + ' KB';
 
                 // Random IoT log events (8% chance)
                 if (Math.random() < 0.08) {
                     const iotLogEvents = [
-                        '📊 تحديث البيانات من المستشعرات',
-                        '🔄 مزامنة مع Firebase',
-                        '📡 أمر مستلم من التطبيق',
-                        '🔔 تنبيه: تغيير في درجة الحرارة',
-                        '✅ فحص دوري للمستشعرات - جميعها تعمل',
-                        '📡 إرسال بيانات المستشعرات إلى Firebase'
+                        'تحديث بيانات المستشعرات - DHT11: ' + garageData.temperature + 'C',
+                        'مزامنة حالة المواقف مع Firebase',
+                        'أمر مستلم: فحص حالة المستشعرات',
+                        'فحص دوري - جميع المستشعرات تعمل بشكل طبيعي',
+                        'إرسال بيانات ' + packetSize.toFixed(1) + ' KB إلى Firebase',
+                        'استقبال أمر من لوحة التحكم',
+                        'تحديث حالة البوابات - الدخول: ' + (garageData.entryGate ? 'مفتوح' : 'مغلق'),
+                        'قراءة حساس MQ-2: ' + garageData.gasLevel + ' ppm'
                     ];
                     addIoTLog(iotLogEvents[Math.floor(Math.random() * iotLogEvents.length)], 'info');
                 }
