@@ -62,8 +62,8 @@
         .input { width: 100%; padding: 18px 22px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; font-size: 16px; transition: all 0.35s ease; }
         .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.12); background: rgba(255, 255, 255, 0.08); }
         .input::placeholder { color: rgba(255, 255, 255, 0.35); }
-        .parking-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
-        @media (max-width: 768px) { .parking-grid { grid-template-columns: repeat(4, 1fr); } }
+        .parking-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        @media (max-width: 768px) { .parking-grid { grid-template-columns: repeat(3, 1fr); } }
         .parking-spot { aspect-ratio: 1.15; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; position: relative; overflow: hidden; }
         .parking-spot::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.12)); opacity: 0; transition: opacity 0.35s; }
         .parking-spot:hover::before { opacity: 1; }
@@ -290,14 +290,14 @@
                             <h3 class="text-4xl font-black text-white"><span id="carsCount">0</span></h3>
                             <div class="text-left">
                                 <span class="text-lg text-gray-400">/</span>
-                                <span class="text-xl text-gray-500" id="maxCars">20</span>
+                                <span class="text-xl text-gray-500" id="maxCars">9</span>
                             </div>
                         </div>
                         <p class="text-gray-400 text-sm mb-5">عدد السيارات</p>
                         <div class="relative h-3 bg-white/10 rounded-full overflow-hidden">
                             <div id="occupancyBar" class="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all duration-800" style="width: 0%"></div>
                         </div>
-                        <p class="text-xs text-gray-400 mt-3"><span id="availableSpots">20</span> موقف متاح</p>
+                        <p class="text-xs text-gray-400 mt-3"><span id="availableSpots">3</span> موقف متاح</p>
                         <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl"></div>
                     </div>
                     <div class="glass stat-card p-7 animate-slide-up" style="animation-delay: 0.15s;">
@@ -523,7 +523,7 @@
                         حجز موقف جديد
                     </h3>
                     <form id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-5" onsubmit="handleBooking(event)">
-                        <div><label class="block text-sm font-medium text-gray-300 mb-3">رقم الموقف</label><input type="number" id="bookingSpot" class="input" placeholder="اختر رقم الموقف" min="1" max="20" required readonly></div>
+                        <div><label class="block text-sm font-medium text-gray-300 mb-3">رقم الموقف</label><input type="number" id="bookingSpot" class="input" placeholder="اختر رقم الموقف" min="1" max="9" required readonly></div>
                         <div><label class="block text-sm font-medium text-gray-300 mb-3">رقم السيارة</label><input type="text" id="bookingCarNumber" class="input" placeholder="مثال: 12-3456" required></div>
                         <div><label class="block text-sm font-medium text-gray-300 mb-3">وقت الدخول</label><input type="datetime-local" id="bookingTime" class="input" required></div>
                         <div><label class="block text-sm font-medium text-gray-300 mb-3">وقت الخروج المتوقع</label><input type="datetime-local" id="bookingEndTime" class="input"></div>
@@ -600,7 +600,7 @@
                     <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4"><span class="w-12 h-12 bg-cyan-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>معلومات النظام</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="p-4 bg-white/5 rounded-xl text-center"><span class="text-3xl font-bold text-white">v1.0</span><p class="text-xs text-gray-400 mt-2">إصدار التطبيق</p></div>
-                        <div class="p-4 bg-white/5 rounded-xl text-center"><span class="text-3xl font-bold text-white">20</span><p class="text-xs text-gray-400 mt-2">عدد المواقف</p></div>
+                        <div class="p-4 bg-white/5 rounded-xl text-center"><span class="text-3xl font-bold text-white">9</span><p class="text-xs text-gray-400 mt-2">عدد المواقف</p></div>
                     </div>
                 </div>
                 <div class="glass p-7 animate-slide-up" style="animation-delay: 0.18s;">
@@ -971,7 +971,7 @@
         // Global Variables
         let currentUser = null, currentTab = 'dashboard';
         let settings = { sound: true, vibration: true, browserNotif: false, gasThreshold: 300, tempThreshold: 40 };
-        let garageData = { carsCount: 5, maxCars: 20, temperature: 28, humidity: 55, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 120, parkingSpots: Array(20).fill('available') };
+        let garageData = { carsCount: 6, maxCars: 9, temperature: 28, humidity: 55, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 120, parkingSpots: ['occupied','occupied','occupied','occupied','occupied','occupied','available','available','available'] };
         let events = [], gateLogs = [], bookings = [];
         let occupancyChart, tempHumidityChart, carsMovementChart, alertsDistributionChart;
 
@@ -1384,7 +1384,7 @@
             const grid = document.getElementById('parkingGrid');
             if (!grid) return;
             grid.innerHTML = '';
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < garageData.maxCars; i++) {
                 const spot = document.createElement('div');
                 spot.className = 'parking-spot available';
                 spot.innerHTML = `<span class="number">${i + 1}</span><span class="status">متاح</span>`;
@@ -1541,7 +1541,7 @@
 
         function resetData() {
             if (!confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) return;
-            garageData = { carsCount: 0, maxCars: 20, temperature: 25, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, parkingSpots: Array(20).fill('available') };
+            garageData = { carsCount: 0, maxCars: 9, temperature: 25, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, parkingSpots: Array(9).fill('available') };
             events = []; bookings = []; gateLogs = [];
             updateUI(); updateSensorsUI(); initializeParkingGrid(); renderActiveBookings(); renderGateLogs(); renderEvents();
             showToast('تم إعادة تعيين جميع البيانات', 'success');
