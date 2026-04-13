@@ -525,7 +525,7 @@
                     </h3>
                     <form id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-5" onsubmit="handleBooking(event)">
                         <div><label class="block text-sm font-medium text-gray-300 mb-3">رقم الموقف</label><input type="number" id="bookingSpot" class="input" placeholder="اختر رقم الموقف" min="1" max="9" required readonly></div>
-                        <div><label class="block text-sm font-medium text-gray-300 mb-3">رقم السيارة</label><input type="text" id="bookingCarNumber" class="input" placeholder="مثال: 123-4567" required></div>
+                        <div><label class="block text-sm font-medium text-gray-300 mb-3">رقم اللوحة</label><input type="text" id="bookingCarNumber" class="input" placeholder="مثال: 30 4521" required></div>
                         <div><label class="block text-sm font-medium text-gray-300 mb-3">وقت الدخول</label><input type="datetime-local" id="bookingTime" class="input" required></div>
                         <div><label class="block text-sm font-medium text-gray-300 mb-3">وقت الخروج المتوقع</label><input type="datetime-local" id="bookingEndTime" class="input"></div>
                         <div class="md:col-span-2"><button type="submit" class="btn btn-success w-full text-lg py-5"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>تأكيد الحجز</button></div>
@@ -984,7 +984,13 @@
         // Global Variables
         let currentUser = null, currentTab = 'dashboard';
         let settings = { sound: true, vibration: true, browserNotif: false, gasThreshold: 300, tempThreshold: 40 };
-        let garageData = { carsCount: 6, maxCars: 9, temperature: 27, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 120, parkingSpots: ['occupied','occupied','occupied','occupied','occupied','occupied','available','available','available'], carPlates: ['456-7890', '123-4567', '789-0123', '234-5678', '567-8901', '890-1234', '', '', ''] };
+        // Common car models in Palestine
+        const psCarModels = ['Hyundai Accent', 'Hyundai i10', 'Toyota Corolla', 'Toyota Yaris', 'Kia Picanto', 'Kia Rio', 'Nissan Sunny', 'Suzuki Swift', 'Mitsubishi Lancer', 'Chevrolet Aveo', 'Peugeot 208', 'Renault Symbol', 'VW Polo', 'Hyundai Tucson', 'Toyota Camry', 'Kia Sportage'];
+        // Palestinian plate areas (first 2-3 digits indicate governorate)
+        const psPlatePrefixes = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '11', '21', '31', '41', '51'];
+        // Generate realistic Palestinian plate: XXX XXXX
+        function generatePSPlate() { return psPlatePrefixes[Math.floor(Math.random() * psPlatePrefixes.length)] + ' ' + Math.floor(1000 + Math.random() * 9000); }
+        let garageData = { carsCount: 6, maxCars: 9, temperature: 27, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 120, parkingSpots: ['occupied','occupied','occupied','occupied','occupied','occupied','available','available','available'], carPlates: ['30 4521', '10 8834', '50 2190', '20 6753', '40 1098', '70 5542', '', '', ''], carModels: ['Hyundai Accent', 'Toyota Corolla', 'Kia Picanto', 'Nissan Sunny', 'Suzuki Swift', 'Hyundai i10', '', '', ''], entryTimes: ['08:32', '09:15', '10:47', '11:20', '12:05', '13:40', '', '', ''] };
         let events = [], gateLogs = [], bookings = [];
         let occupancyChart, tempHumidityChart, carsMovementChart, alertsDistributionChart;
 
@@ -1512,8 +1518,17 @@
                 const state = garageData.parkingSpots[i];
                 spot.className = 'parking-spot ' + state;
                 const [text, color, icon] = statuses[state];
-                const plate = garageData.carPlates && garageData.carPlates[i] ? `<span class="plate" style="font-size:8px;opacity:0.65;margin-top:3px;font-family:monospace;letter-spacing:1px">${garageData.carPlates[i]}</span>` : '';
-                spot.innerHTML = `<span class="number">${i + 1}</span><span style="font-size:18px;line-height:1">${icon}</span><span class="status" style="color: var(--${color})">${text}</span>${plate}`;
+                let extraInfo = '';
+                if (state === 'occupied' && garageData.carPlates && garageData.carPlates[i]) {
+                    const model = (garageData.carModels && garageData.carModels[i]) ? garageData.carModels[i] : '';
+                    const time = (garageData.entryTimes && garageData.entryTimes[i]) ? garageData.entryTimes[i] : '';
+                    extraInfo = `<span class="plate" style="font-size:7px;opacity:0.7;margin-top:2px;font-family:monospace;letter-spacing:0.5px">${garageData.carPlates[i]}</span>`;
+                    if (model) extraInfo += `<span style="font-size:6.5px;opacity:0.5;margin-top:1px;display:block">${model}</span>`;
+                    if (time) extraInfo += `<span style="font-size:6px;opacity:0.4;margin-top:0px;display:block">${time}</span>`;
+                } else if (state === 'booked' && garageData.carPlates && garageData.carPlates[i]) {
+                    extraInfo = `<span class="plate" style="font-size:7px;opacity:0.7;margin-top:2px;font-family:monospace;letter-spacing:0.5px">${garageData.carPlates[i]}</span>`;
+                }
+                spot.innerHTML = `<span class="number">${i + 1}</span><span style="font-size:18px;line-height:1">${icon}</span><span class="status" style="color: var(--${color})">${text}</span>${extraInfo}`;
             });
         }
 
@@ -1542,6 +1557,7 @@
             bookings.push({ spotNumber: spot, carNumber: car, startTime: new Date(time).toISOString(), endTime: endTime ? new Date(endTime).toISOString() : null, status: 'active', user: currentUser ? currentUser.name : 'زائر' });
             garageData.parkingSpots[spot - 1] = 'booked';
             if (garageData.carPlates) garageData.carPlates[spot - 1] = car;
+            if (garageData.entryTimes && !garageData.entryTimes[spot - 1]) garageData.entryTimes[spot - 1] = new Date(time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             garageData.carsCount = garageData.parkingSpots.filter(s => s !== 'available').length;
             updateParkingGrid();
             updateUI();
@@ -1566,6 +1582,8 @@
             const b = bookings[i];
             garageData.parkingSpots[b.spotNumber - 1] = 'available';
             if (garageData.carPlates) garageData.carPlates[b.spotNumber - 1] = '';
+            if (garageData.carModels) garageData.carModels[b.spotNumber - 1] = '';
+            if (garageData.entryTimes) garageData.entryTimes[b.spotNumber - 1] = '';
             bookings[i].status = 'cancelled';
             updateParkingGrid();
             updateUI();
@@ -1658,7 +1676,7 @@
 
         function resetData() {
             if (!confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) return;
-            garageData = { carsCount: 0, maxCars: 9, temperature: 25, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, parkingSpots: Array(9).fill('available'), carPlates: Array(9).fill('') };
+            garageData = { carsCount: 0, maxCars: 9, temperature: 25, humidity: 50, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, parkingSpots: Array(9).fill('available'), carPlates: Array(9).fill(''), carModels: Array(9).fill(''), entryTimes: Array(9).fill('') };
             events = []; bookings = []; gateLogs = [];
             updateUI(); updateSensorsUI(); initializeParkingGrid(); renderActiveBookings(); renderGateLogs(); renderEvents();
             showToast('تم إعادة تعيين جميع البيانات', 'success');
@@ -1776,10 +1794,14 @@
                                 garageData.entryGate = false;
                                 garageData.parkingSpots[availableIdx] = 'occupied';
                                 garageData.carsCount = garageData.parkingSpots.filter(s => s !== 'available').length;
-                                const randomPlate = Math.floor(Math.random() * 90 + 10) + '-' + Math.floor(Math.random() * 9000 + 1000);
+                                const randomPlate = generatePSPlate();
+                                const randomModel = psCarModels[Math.floor(Math.random() * psCarModels.length)];
+                                const entryTime = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                                 if (garageData.carPlates) garageData.carPlates[availableIdx] = randomPlate;
-                                addEvent('دخلت سيارة في موقف #' + (availableIdx + 1) + ' - لوحة: ' + randomPlate, 'entry');
-                                addIoTLog('✅ موقف #' + (availableIdx + 1) + ': مشغول - ' + randomPlate, 'success');
+                                if (garageData.carModels) garageData.carModels[availableIdx] = randomModel;
+                                if (garageData.entryTimes) garageData.entryTimes[availableIdx] = entryTime;
+                                addEvent('دخلت سيارة في موقف #' + (availableIdx + 1) + ' - ' + randomModel + ' | ' + randomPlate, 'entry');
+                                addIoTLog('موقف #' + (availableIdx + 1) + ': مشغول - ' + randomModel + ' | ' + randomPlate, 'success');
                                 updateUI();
                                 updateParkingGrid();
                                 updateGateUI('entryGate', false);
@@ -1796,8 +1818,9 @@
                     const occupiedIdx = garageData.parkingSpots.findIndex(s => s === 'occupied');
                     if (occupiedIdx !== -1) {
                         const plateNum = garageData.carPlates ? garageData.carPlates[occupiedIdx] : '';
+                        const carModel = (garageData.carModels && garageData.carModels[occupiedIdx]) ? garageData.carModels[occupiedIdx] : '';
                         garageData.irExit = true;
-                        addEvent('سيارة تغادر موقف #' + (occupiedIdx + 1) + (plateNum ? ' - لوحة: ' + plateNum : ''), 'exit');
+                        addEvent('سيارة تغادر موقف #' + (occupiedIdx + 1) + (carModel ? ' - ' + carModel : '') + (plateNum ? ' | ' + plateNum : ''), 'exit');
                         addIoTLog('🚗 حساس IR Exit: سيارة تغادر', 'warning');
 
                         setTimeout(() => {
@@ -1813,6 +1836,8 @@
                                 garageData.parkingSpots[occupiedIdx] = 'available';
                                 garageData.carsCount = garageData.parkingSpots.filter(s => s !== 'available').length;
                                 if (garageData.carPlates) garageData.carPlates[occupiedIdx] = '';
+                                if (garageData.carModels) garageData.carModels[occupiedIdx] = '';
+                                if (garageData.entryTimes) garageData.entryTimes[occupiedIdx] = '';
                                 addEvent('خرجت سيارة من موقف #' + (occupiedIdx + 1), 'exit');
                                 addIoTLog('✅ موقف #' + (occupiedIdx + 1) + ': متاح', 'success');
                                 updateUI();
