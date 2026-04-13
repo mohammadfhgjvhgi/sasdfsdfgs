@@ -266,6 +266,10 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     الإعدادات
                 </button>
+                <button class="tab-btn" data-tab="iot">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                    IoT
+                </button>
             </div>
         </nav>
 
@@ -604,6 +608,241 @@
                     <button onclick="resetData()" class="btn btn-danger w-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>إعادة تعيين جميع البيانات</button>
                 </div>
             </section>
+
+            <!-- IoT Dashboard -->
+            <section id="tab-iot" class="tab-content space-y-6" style="display: none;">
+                <!-- Hardware Status Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Mega 2560 Status -->
+                    <div class="glass p-6 animate-slide-up" style="animation-delay: 0.1s;">
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-14 h-14 bg-gradient-to-br from-cyan-500/28 to-cyan-600/28 rounded-xl flex items-center justify-center">
+                                    <span class="text-2xl">🔴</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Mega 2560</h3>
+                                    <p class="text-xs text-gray-400">Main Controller</p>
+                                </div>
+                            </div>
+                            <span id="megaStatusBadge" class="status-badge status-online">متصل</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Uptime</span>
+                                <span id="megaUptime" class="text-cyan-400 font-mono">00:00:00</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Memory</span>
+                                <span id="megaMemory" class="text-green-400">8 KB</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">CPU Load</span>
+                                <span id="megaCpuLoad" class="text-yellow-400">12%</span>
+                            </div>
+                            <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div id="megaLoadBar" class="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all duration-500" style="width: 12%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESP8266 Status -->
+                    <div class="glass p-6 animate-slide-up" style="animation-delay: 0.15s;">
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-14 h-14 bg-gradient-to-br from-purple-500/28 to-purple-600/28 rounded-xl flex items-center justify-center">
+                                    <span class="text-2xl">📶</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">ESP8266</h3>
+                                    <p class="text-xs text-gray-400">WiFi Module</p>
+                                </div>
+                            </div>
+                            <span id="espStatusBadge" class="status-badge status-online">متصل</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">WiFi Signal</span>
+                                <span id="wifiStrength" class="text-purple-400 font-mono">-45 dBm</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">RSSI</span>
+                                <div class="flex gap-0.5">
+                                    <div class="w-1 h-4 bg-green-400 rounded-full"></div>
+                                    <div class="w-1 h-5 bg-green-400 rounded-full"></div>
+                                    <div class="w-1 h-6 bg-green-400 rounded-full"></div>
+                                    <div class="w-1 h-3 bg-gray-600 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Latency</span>
+                                <span id="wifiLatency" class="text-green-400">24 ms</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Mode</span>
+                                <span class="text-purple-400">STA</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Firebase Status -->
+                    <div class="glass p-6 animate-slide-up" style="animation-delay: 0.2s;">
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-14 h-14 bg-gradient-to-br from-orange-500/28 to-orange-600/28 rounded-xl flex items-center justify-center">
+                                    <span class="text-2xl">☁️</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Firebase</h3>
+                                    <p class="text-xs text-gray-400">Cloud Database</p>
+                                </div>
+                            </div>
+                            <span id="firebaseStatusBadge" class="status-badge status-offline">غير متصل</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Database</span>
+                                <span class="text-green-400 truncate max-w-32 text-xs">my-systim...</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Last Sync</span>
+                                <span id="firebaseLastSync" class="text-orange-400 text-xs">--:--:--</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Data Sent</span>
+                                <span id="dataSent" class="text-cyan-400">0 KB</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Data Received</span>
+                                <span id="dataReceived" class="text-cyan-400">0 KB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Architecture Diagram -->
+                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.25s;">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-4">
+                        <span class="w-12 h-12 bg-purple-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg></span>
+                        هيكل النظام - System Architecture
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <!-- Web App -->
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-cyan-500/30 to-cyan-600/30 rounded-2xl flex items-center justify-center border-2 border-cyan-500/50 mb-3">
+                                <span class="text-4xl">🌐</span>
+                            </div>
+                            <h4 class="font-bold text-white mb-1">Web App</h4>
+                            <p class="text-xs text-gray-400">index.html</p>
+                            <p class="text-xs text-gray-500 mt-2">Firebase SDK</p>
+                        </div>
+
+                        <!-- Arrows -->
+                        <div class="hidden md:flex items-center justify-center">
+                            <svg class="w-full h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </div>
+
+                        <!-- Firebase Cloud -->
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500/30 to-orange-600/30 rounded-2xl flex items-center justify-center border-2 border-orange-500/50 mb-3">
+                                <span class="text-4xl">☁️</span>
+                            </div>
+                            <h4 class="font-bold text-white mb-1">Firebase</h4>
+                            <p class="text-xs text-gray-400">Real-time DB</p>
+                            <p class="text-xs text-gray-500 mt-2">Commands, Data</p>
+                        </div>
+
+                        <!-- Arrow -->
+                        <div class="hidden md:flex items-center justify-center">
+                            <svg class="w-full h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Second Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+                        <!-- ESP8266 -->
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500/30 to-purple-600/30 rounded-2xl flex items-center justify-center border-2 border-purple-500/50 mb-3">
+                                <span class="text-4xl">📶</span>
+                            </div>
+                            <h4 class="font-bold text-white mb-1">ESP8266</h4>
+                            <p class="text-xs text-gray-400">WiFi Module</p>
+                            <p class="text-xs text-gray-500 mt-2">TX/RX Serial</p>
+                        </div>
+
+                        <!-- Arrow -->
+                        <div class="hidden md:flex items-center justify-center">
+                            <svg class="w-full h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </div>
+
+                        <!-- Mega 2560 -->
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-green-500/30 to-green-600/30 rounded-2xl flex items-center justify-center border-2 border-green-500/50 mb-3">
+                                <span class="text-4xl">🔴</span>
+                            </div>
+                            <h4 class="font-bold text-white mb-1">Mega 2560</h4>
+                            <p class="text-xs text-gray-400">Main Controller</p>
+                            <p class="text-xs text-gray-500 mt-2">Sensors, Gates</p>
+                        </div>
+
+                        <!-- Arrow -->
+                        <div class="hidden md:flex items-center justify-center">
+                            <svg class="w-full h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Hardware Connections -->
+                    <div class="mt-6 pt-6 border-t border-white/10">
+                        <h4 class="font-bold text-white mb-4 text-center">منفذ الاتصال - Pin Connections</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-orange-400 font-mono">D9</span>
+                                <p class="text-gray-400 text-xs">Servo Entry</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-orange-400 font-mono">D10</span>
+                                <p class="text-gray-400 text-xs">Servo Exit</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-orange-400 font-mono">D53</span>
+                                <p class="text-gray-400 text-xs">Servo Security</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-green-400 font-mono">D27/D28</span>
+                                <p class="text-gray-400 text-xs">IR Sensors</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-cyan-400 font-mono">D26</span>
+                                <p class="text-gray-400 text-xs">DHT11</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-yellow-400 font-mono">A0</span>
+                                <p class="text-gray-400 text-xs">MQ-2 Gas</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-red-400 font-mono">D22/D23</span>
+                                <p class="text-gray-400 text-xs">Flame/Vibration</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3 text-center">
+                                <span class="text-purple-400 font-mono">D24/D25</span>
+                                <p class="text-gray-400 text-xs">Buzzer/Light</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Logs -->
+                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4">
+                        <span class="w-12 h-12 bg-gray-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></span>
+                        سجل النظام - System Logs
+                        <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-auto"></span>
+                    </h3>
+                    <div id="iotLogs" class="space-y-2 max-h-64 overflow-y-auto font-mono text-xs">
+                        <p class="text-gray-400 text-center py-4">جاري تحميل السجلات...</p>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -736,6 +975,16 @@
         let events = [], gateLogs = [], bookings = [];
         let occupancyChart, tempHumidityChart, carsMovementChart, alertsDistributionChart;
 
+        // IoT System Variables - Realistic Simulation
+        let iotState = {
+            mega2560: { connected: true, uptime: 0, lastHeartbeat: Date.now() },
+            esp8266: { connected: true, wifiStrength: -45, lastPing: Date.now() },
+            firebase: { connected: false, lastSync: Date.now() },
+            systemMetrics: { cpuLoad: 0, memory: 0, latency: 0 }
+        };
+        let systemStartTime = Date.now();
+        let simulationInterval;
+
         // User Authentication Data
         const users = {
             'admin@garage.com': { password: '123456', role: 'admin', name: 'مدير النظام' },
@@ -852,6 +1101,121 @@
             if (tab === 'reports' && !carsMovementChart) {
                 initializeCharts();
             }
+            if (tab === 'iot') {
+                initializeIoTDashboard();
+            }
+        }
+
+        // ============ IoT DASHBOARD ============
+        function initializeIoTDashboard() {
+            // Initialize IoT logs
+            const logsEl = document.getElementById('iotLogs');
+            if (logsEl && logsEl.querySelector('p')) {
+                addIoTLog('🚀 تم تهيئة لوحة IoT', 'success');
+                addIoTLog('📡 جاري الاتصال بـ Mega 2560...', 'info');
+                setTimeout(() => addIoTLog('✓ Mega 2560 متصل', 'success'), 500);
+                setTimeout(() => addIoTLog('📶 جاري الاتصال بـ ESP8266...', 'info'), 1000);
+                setTimeout(() => addIoTLog('✓ ESP8266 متصل', 'success'), 1500);
+                setTimeout(() => addIoTLog('☁️ جاري الاتصال بـ Firebase...', 'info'), 2000);
+                setTimeout(() => addIoTLog('✓ Firebase متصل - الوضع: محاكاة', 'warning'), 2500);
+            }
+
+            // Start simulation
+            if (!simulationInterval) {
+                startIoTSimulation();
+            }
+        }
+
+        function addIoTLog(message, type = 'info') {
+            const logsEl = document.getElementById('iotLogs');
+            if (!logsEl) return;
+
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                warning: 'text-yellow-400',
+                error: 'text-red-400'
+            };
+
+            const time = new Date().toLocaleTimeString('ar-SA');
+            const logEl = document.createElement('div');
+            logEl.className = `${colors[type]} bg-white/5 p-2 rounded flex gap-3`;
+            logEl.innerHTML = `<span class="text-gray-500">[${time}]</span><span>${message}</span>`;
+
+            if (logsEl.querySelector('p')) {
+                logsEl.innerHTML = '';
+            }
+
+            logsEl.insertBefore(logEl, logsEl.firstChild);
+
+            // Keep only last 50 logs
+            while (logsEl.children.length > 50) {
+                logsEl.removeChild(logsEl.lastChild);
+            }
+        }
+
+        function startIoTSimulation() {
+            simulationInterval = setInterval(() => {
+                // Update Mega 2560 stats
+                const uptime = Math.floor((Date.now() - systemStartTime) / 1000);
+                const hours = Math.floor(uptime / 3600);
+                const minutes = Math.floor((uptime % 3600) / 60);
+                const seconds = uptime % 60;
+                document.getElementById('megaUptime').textContent =
+                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                // Simulate CPU load
+                const cpuLoad = Math.floor(Math.random() * 20) + 5;
+                document.getElementById('megaCpuLoad').textContent = cpuLoad + '%';
+                document.getElementById('megaLoadBar').style.width = cpuLoad + '%';
+
+                // Update WiFi stats
+                const wifiStrength = -Math.floor(Math.random() * 30) - 35;
+                document.getElementById('wifiStrength').textContent = wifiStrength + ' dBm';
+
+                // Update latency
+                const latency = Math.floor(Math.random() * 30) + 15;
+                document.getElementById('wifiLatency').textContent = latency + ' ms';
+
+                // Update Firebase sync time
+                document.getElementById('firebaseLastSync').textContent =
+                    new Date().toLocaleTimeString('ar-SA');
+
+                // Update data counters
+                const dataSent = Math.floor(Math.random() * 100) + 50;
+                const dataReceived = Math.floor(Math.random() * 80) + 40;
+                document.getElementById('dataSent').textContent = dataSent + ' KB';
+                document.getElementById('dataReceived').textContent = dataReceived + ' KB';
+
+                // Random events (10% chance)
+                if (Math.random() < 0.1) {
+                    const events = [
+                        '📊 تحديث البيانات من المستشعرات',
+                        '🔄 مزامنة مع Firebase',
+                        '📡 أمر مستلم من التطبيق',
+                        '⚡ تغيير حالة البوابة',
+                        '🔔 تنبيه: تغيير في درجة الحرارة'
+                    ];
+                    addIoTLog(events[Math.floor(Math.random() * events.length)], 'info');
+                }
+
+                // Simulate garage data changes
+                garageData.temperature = Math.round((22 + Math.random() * 8) * 10) / 10;
+                garageData.humidity = Math.round((40 + Math.random() * 30) * 10) / 10;
+                garageData.gasLevel = Math.floor(100 + Math.random() * 150);
+
+                // Random car activity
+                if (Math.random() < 0.05) {
+                    if (garageData.carsCount < garageData.maxCars && Math.random() < 0.5) {
+                        garageData.carsCount++;
+                        addIoTLog('🚗 سيارة进去了 - حساس IR Entry', 'success');
+                    } else if (garageData.carsCount > 0 && Math.random() >= 0.5) {
+                        garageData.carsCount--;
+                        addIoTLog('🚗 سيارة خرجت - حساس IR Exit', 'warning');
+                    }
+                    updateUI();
+                }
+            }, 2000);
         }
 
         // ============ GATE CONTROL ============
@@ -1456,6 +1820,482 @@
             }
         };
     </script>
+
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
+</script>
 
 <script>
 /**
