@@ -386,21 +386,13 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-7">
-                    <div class="glass p-7 animate-slide-up" style="animation-delay: 0.3s;">
-                        <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4">
-                            <span class="w-12 h-12 bg-cyan-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span>
-                            نسبة الإشغال
-                        </h3>
-                        <div class="chart-container"><canvas id="occupancyChart"></canvas></div>
-                    </div>
-                    <div class="glass p-7 animate-slide-up" style="animation-delay: 0.35s;">
-                        <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4">
-                            <span class="w-12 h-12 bg-orange-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg></span>
-                            الحرارة والرطوبة
-                        </h3>
-                        <div class="chart-container"><canvas id="tempHumidityChart"></canvas></div>
-                    </div>
+                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4">
+                        <span class="w-12 h-12 bg-cyan-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span>
+                        نسبة الإشغال
+                        <span id="occupancyPercent" class="mr-auto text-2xl font-black text-cyan-400">0%</span>
+                    </h3>
+                    <div class="chart-container"><canvas id="occupancyChart"></canvas></div>
                 </div>
 
                 <div class="glass p-7 animate-slide-up" style="animation-delay: 0.4s;">
@@ -1154,7 +1146,7 @@
         function generatePSPlate() { return psPlatePrefixes[Math.floor(Math.random() * psPlatePrefixes.length)] + ' ' + Math.floor(1000 + Math.random() * 9000); }
         let garageData = { carsCount: 0, maxCars: 9, temperature: 0, humidity: 0, flameAlert: false, gasAlert: false, vibrationAlert: false, entryGate: false, exitGate: false, securityDoor: false, irEntry: false, irExit: false, gasLevel: 0, vibLevel: 0, gasDO: 0, relayOn: false, parkingSpots: Array(9).fill('available'), carPlates: Array(9).fill(''), carModels: Array(9).fill(''), entryTimes: Array(9).fill('') };
         let events = [], gateLogs = [], bookings = [];
-        let occupancyChart, tempHumidityChart, carsMovementChart, alertsDistributionChart;
+        let occupancyChart, carsMovementChart, alertsDistributionChart;
 
         // IoT System Variables - Realistic Simulation
         let iotState = {
@@ -1636,12 +1628,8 @@
         function updateUI() {
             const carsCountEl = document.getElementById('carsCount');
             const maxCarsEl = document.getElementById('maxCars');
-            const tempEl = document.getElementById('temperature');
-            const humidityEl = document.getElementById('humidity');
-            const headerTempEl = document.getElementById('headerTemp');
             const availableSpotsEl = document.getElementById('availableSpots');
             const occupancyBarEl = document.getElementById('occupancyBar');
-            const tempStatusEl = document.getElementById('tempStatus');
             const lastUpdateEl = document.getElementById('lastUpdate');
 
             if (carsCountEl) carsCountEl.textContent = garageData.carsCount;
@@ -1846,17 +1834,37 @@
                 return;
             }
 
+            if (garageData.parkingSpots[spot - 1] !== 'available') {
+                showToast('هذا الموقف غير متاح للحجز', 'error');
+                return;
+            }
+
+            // تحديث البيانات المحلية
             bookings.push({ spotNumber: spot, carNumber: car, startTime: new Date(time).toISOString(), endTime: endTime ? new Date(endTime).toISOString() : null, status: 'active', user: currentUser ? currentUser.name : 'زائر' });
             garageData.parkingSpots[spot - 1] = 'booked';
             if (garageData.carPlates) garageData.carPlates[spot - 1] = car;
             if (garageData.entryTimes && !garageData.entryTimes[spot - 1]) garageData.entryTimes[spot - 1] = new Date(time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             garageData.carsCount = garageData.parkingSpots.filter(s => s !== 'available').length;
+
+            // إرسال البيانات إلى Firebase حتى يتلقاها Bridge ويعرضها على LCD
+            if (firebaseInitialized && database) {
+                database.ref('garage').update({
+                    CAR: garageData.carsCount,
+                    MAX: garageData.maxCars
+                }).then(() => {
+                    addIoTLog('تم تحديث عدد السيارات في Firebase: ' + garageData.carsCount + '/' + garageData.maxCars, 'success');
+                }).catch(err => {
+                    console.error('Firebase update error:', err);
+                });
+            }
+
             updateParkingGrid();
             updateUI();
             renderActiveBookings();
             document.getElementById('bookingForm').reset();
-            showToast('تم الحجز بنجاح!', 'success');
-            addEvent('حجز جديد - موقف ' + spot, 'entry');
+            showToast('تم الحجز بنجاح! الموقف #' + spot + ' - ' + car, 'success');
+            addEvent('حجز جديد - موقف #' + spot + ' | ' + car + ' - بواسطة ' + (currentUser ? currentUser.name : 'زائر'), 'entry');
+            addIoTLog('حجز جديد: موقف #' + spot + ' - ' + car + ' | الإجمالي: ' + garageData.carsCount, 'success');
         }
 
         function renderActiveBookings() {
@@ -1877,32 +1885,38 @@
             if (garageData.carModels) garageData.carModels[b.spotNumber - 1] = '';
             if (garageData.entryTimes) garageData.entryTimes[b.spotNumber - 1] = '';
             bookings[i].status = 'cancelled';
+            garageData.carsCount = garageData.parkingSpots.filter(s => s !== 'available').length;
+
+            // تحديث Firebase بعد إلغاء الحجز
+            if (firebaseInitialized && database) {
+                database.ref('garage').update({
+                    CAR: garageData.carsCount
+                }).then(() => {
+                    addIoTLog('إلغاء حجز: تم تحديث العدد في Firebase: ' + garageData.carsCount, 'info');
+                }).catch(err => {
+                    console.error('Firebase update error:', err);
+                });
+            }
+
             updateParkingGrid();
             updateUI();
             renderActiveBookings();
-            showToast('تم إلغاء الحجز', 'success');
+            showToast('تم إلغاء حجز موقف #' + b.spotNumber, 'success');
+            addEvent('إلغاء حجز - موقف #' + b.spotNumber, 'exit');
+            addIoTLog('إلغاء حجز: موقف #' + b.spotNumber + ' | الإجمالي: ' + garageData.carsCount, 'warning');
         }
 
         // ============ CHARTS ============
         function initializeCharts() {
             const occCtx = document.getElementById('occupancyChart');
-            const tempCtx = document.getElementById('tempHumidityChart');
             const carsCtx = document.getElementById('carsMovementChart');
             const alertsCtx = document.getElementById('alertsDistributionChart');
 
             if (occCtx) {
                 occupancyChart = new Chart(occCtx.getContext('2d'), {
                     type: 'doughnut',
-                    data: { labels: ['مشغول', 'متاح'], datasets: [{ data: [garageData.carsCount, garageData.maxCars - garageData.carsCount], backgroundColor: ['#00d4ff', 'rgba(124, 58, 237, 0.1)'], borderColor: ['#00d4ff', 'rgba(124, 58, 237, 0.3)'], borderWidth: 2 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } }
-                });
-            }
-
-            if (tempCtx) {
-                tempHumidityChart = new Chart(tempCtx.getContext('2d'), {
-                    type: 'line',
-                    data: { labels: ['6 ص', '9 ص', '12 م', '3 م', '6 م', '9 م'], datasets: [{ label: 'الحرارة', data: [20, 24, 30, 33, 29, 24], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', fill: true, tension: 0.45 }, { label: 'الرطوبة', data: [60, 52, 40, 38, 48, 55], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.15)', fill: true, tension: 0.45 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } }, scales: { x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
+                    data: { labels: ['مشغول', 'محجوز', 'متاح'], datasets: [{ data: [garageData.parkingSpots.filter(s => s === 'occupied').length, garageData.parkingSpots.filter(s => s === 'booked').length, garageData.parkingSpots.filter(s => s === 'available').length], backgroundColor: ['rgba(0, 212, 255, 0.85)', 'rgba(245, 158, 11, 0.85)', 'rgba(124, 58, 237, 0.1)'], borderColor: ['#00d4ff', '#f59e0b', 'rgba(124, 58, 237, 0.3)'], borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo', size: 13 }, padding: 16 } } } }
                 });
             }
 
@@ -1924,7 +1938,20 @@
         }
 
         function updateCharts() {
-            if (occupancyChart) { occupancyChart.data.datasets[0].data = [garageData.carsCount, garageData.maxCars - garageData.carsCount]; occupancyChart.update(); }
+            if (occupancyChart) {
+                const occ = garageData.parkingSpots.filter(s => s === 'occupied').length;
+                const bkd = garageData.parkingSpots.filter(s => s === 'booked').length;
+                const avl = garageData.parkingSpots.filter(s => s === 'available').length;
+                occupancyChart.data.datasets[0].data = [occ, bkd, avl];
+                occupancyChart.update();
+                // تحديث نسبة الإشغال في العنوان
+                const pct = Math.round(((occ + bkd) / garageData.maxCars) * 100);
+                const pctEl = document.getElementById('occupancyPercent');
+                if (pctEl) {
+                    pctEl.textContent = pct + '%';
+                    pctEl.className = 'mr-auto text-2xl font-black ' + (pct >= 90 ? 'text-red-400' : pct >= 70 ? 'text-yellow-400' : 'text-cyan-400');
+                }
+            }
         }
 
         function showReport(type) {
@@ -2185,7 +2212,9 @@
                 return;
             }
             window._appInitialized = true;
-            if (currentTab === 'reports') initializeCharts();
+            // Initialize dashboard occupancy chart on startup
+            const occCtx = document.getElementById('occupancyChart');
+            if (occCtx) initializeCharts();
             initializeParkingGrid();
             updateSensorsUI();
             connectToFirebase();
