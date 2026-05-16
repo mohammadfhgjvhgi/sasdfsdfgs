@@ -28,9 +28,6 @@
         .glass { background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
         .glass-hover { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .glass-hover:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 24px 50px rgba(0, 212, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1); border-color: rgba(0, 212, 255, 0.35); }
-
-        .header-alert { border-bottom: 3px solid rgba(239, 68, 68, 0.8); animation: headerAlertPulse 1.5s ease-in-out infinite; }
-        @keyframes headerAlertPulse { 0%, 100% { border-bottom-color: rgba(239, 68, 68, 0.4); } 50% { border-bottom-color: rgba(239, 68, 68, 1); } }
         .gradient-text { background: linear-gradient(135deg, #00d4ff, #7c3aed, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .btn { padding: 14px 28px; border-radius: 16px; font-weight: 700; border: none; cursor: pointer; transition: all 0.35s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; position: relative; overflow: hidden; }
         .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.25); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.7s, height 0.7s; }
@@ -74,23 +71,18 @@
         .parking-spot.available { background: linear-gradient(145deg, rgba(16, 185, 129, 0.28), rgba(16, 185, 129, 0.12)); border-color: rgba(16, 185, 129, 0.55); color: var(--success); box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.08); }
         .parking-spot.available:hover { transform: scale(1.06) translateY(-5px); box-shadow: 0 14px 35px rgba(16, 185, 129, 0.4); }
         .parking-spot.occupied { background: linear-gradient(145deg, rgba(239, 68, 68, 0.28), rgba(239, 68, 68, 0.12)); border-color: rgba(239, 68, 68, 0.55); color: var(--danger); box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.08); }
-        .parking-spot.occupied:hover { transform: scale(1.04); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); }
         .parking-spot.booked { background: linear-gradient(145deg, rgba(245, 158, 11, 0.28), rgba(245, 158, 11, 0.12)); border-color: rgba(245, 158, 11, 0.55); color: var(--accent); box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.08); }
-        .parking-spot.booked:hover { transform: scale(1.04); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
         .parking-spot.selected { border-color: var(--primary); box-shadow: 0 0 35px rgba(0, 212, 255, 0.55); transform: scale(1.06); }
         .parking-spot .number { font-size: 20px; font-weight: 900; }
         .parking-spot .status { font-size: 11px; margin-top: 5px; opacity: 0.85; }
         .gate-visual { position: relative; height: 140px; background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55)); border-radius: 18px; overflow: hidden; }
-        .gate-bar { position: absolute; bottom: 0; z-index: 1; left: 0; right: 0; height: 35px; background: linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #ef4444 100%); transform-origin: left center; transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.35); }
+        .gate-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 35px; background: linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #ef4444 100%); transform-origin: left center; transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.35); }
         .gate-bar::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 12px, rgba(255, 255, 255, 0.22) 12px, rgba(255, 255, 255, 0.22) 15px); }
         .gate-open .gate-bar { transform: rotateX(-90deg); }
-
-        .gate-visual::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 15px; background: linear-gradient(180deg, #333, #222); border-radius: 0 0 18px 18px; z-index: 0; }
-        .gate-visual::after { content: ''; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 80%; height: 3px; background: repeating-linear-gradient(90deg, #666 0, #666 20px, transparent 20px, transparent 40px); opacity: 0.5; z-index: 0; }
         .gate-status-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; border-radius: 50%; background: rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; font-size: 28px; }
         .chart-container { position: relative; height: 300px; width: 100%; }
-        .event-item { padding: 18px 22px; border-radius: 16px; background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border-right: 5px solid var(--primary); margin-bottom: 12px; transition: all 0.35s ease; display: flex; align-items: center; gap: 16px; }
-        .event-item:hover { background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); transform: translateX(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .event-item { padding: 18px 22px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border-right: 5px solid var(--primary); margin-bottom: 12px; transition: all 0.35s ease; }
+        .event-item:hover { background: rgba(255, 255, 255, 0.06); transform: translateX(-5px); }
         .event-item.entry { border-right-color: var(--success); }
         .event-item.exit { border-right-color: var(--warning); }
         .event-item.alert { border-right-color: var(--danger); }
@@ -160,39 +152,9 @@
         .gradient-border { position: relative; }
         .gradient-border::before { content: ''; position: absolute; inset: -2px; border-radius: inherit; background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent), var(--primary)); background-size: 400% 400%; animation: gradientBorder 3s ease infinite; z-index: -1; }
         @keyframes gradientBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-
-        @media (max-width: 768px) {
-            #sensorsStatusGrid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
-        @keyframes loadingBar { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
-        .animate-loading-bar { animation: loadingBar 2s ease-in-out forwards; }
-
-        @media (max-width: 768px) {
-            nav { -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
-            .tab-btn { scroll-snap-align: start; min-width: fit-content; padding: 12px 16px; font-size: 13px; }
-        }
-        @media (max-width: 768px) {
-            .header-widgets { flex-wrap: wrap; gap: 8px !important; }
-            .weather-widget { padding: 8px 12px; }
-            .weather-widget span.text-2xl { font-size: 1.2rem; }
-            .weather-widget span.text-xl { font-size: 0.9rem; }
-        }
     </style>
 </head>
 <body>
-
-    <div id="loadingScreen" class="fixed inset-0 z-[9999] bg-[#0a0a1a] flex items-center justify-center">
-        <div class="text-center animate-fade-in">
-            <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-cyan-400 via-purple-500 to-orange-500 rounded-3xl flex items-center justify-center animate-glow">
-                <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-            </div>
-            <h2 class="text-3xl font-black gradient-text mb-3">الكراج الذكي</h2>
-            <p class="text-gray-400 text-lg mb-8">جاري التحميل...</p>
-            <div class="w-48 h-1.5 bg-white/10 rounded-full mx-auto overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500 rounded-full animate-loading-bar"></div>
-            </div>
-        </div>
-    </div>
     <div class="bg-animated"></div>
     <div id="alertBanner" class="alert-banner" style="display: none;">
         <span id="alertIcon" class="text-3xl">⚠️</span>
@@ -262,11 +224,7 @@
                         <p class="text-sm text-gray-400">Smart Parking Pro - فلسطين</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 flex-wrap header-widgets">
-                                        <div class="weather-widget">
-                        <span class="text-2xl">🕐</span>
-                        <div><span id="headerClock" class="font-bold text-xl">--:--</span><span class="text-gray-400 text-xs block" id="headerDate">--/--/----</span></div>
-                    </div>
+                <div class="flex items-center gap-4 flex-wrap">
                     <div class="weather-widget">
                         <span class="text-2xl">💨</span>
                         <div><span id="headerGas" class="font-bold text-xl">0</span><span class="text-gray-400 text-xs block">غاز ppm</span></div>
@@ -990,11 +948,6 @@
                     </div>
                 </div>
             </section>
-
-            <footer class="p-6 text-center text-gray-500 text-sm border-t border-white/5 mt-8">
-                <p>الكراج الذكي - Smart Parking Pro v4.0 | فلسطين 🇵🇸</p>
-                <p class="mt-1 text-xs text-gray-600">Mega 2560 + Uno Bridge + Python + Firebase RTDB</p>
-            </footer>
         </main>
     </div>
 
@@ -1037,12 +990,6 @@
                 <span id="congestionText" class="text-sm font-bold text-green-400">منخفض</span>
             </div>
             <p id="congestionAdvice" class="text-xs text-gray-400">الوقت الحالي مناسب للزيارة</p>
-        </div>
-        <div class="mt-3 pt-3 border-t border-white/10">
-            <div class="flex justify-between text-xs">
-                <span class="text-gray-400">الإشغال الحالي</span>
-                <span id="congestionCurrentOcc" class="text-cyan-400 font-bold">0%</span>
-            </div>
         </div>
         <div class="text-xs text-gray-500">آخر تحديث: <span id="congestionUpdate">--:--</span></div>
     </div>
@@ -1113,23 +1060,6 @@
     </button>
 
     <script>
-
-        // Real-Time Clock
-        function updateClock() {
-            const now = new Date();
-            const clockEl = document.getElementById('headerClock');
-            const dateEl = document.getElementById('headerDate');
-            if (clockEl) clockEl.textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-            if (dateEl) dateEl.textContent = now.toLocaleDateString('ar-SA', { weekday: 'short', day: 'numeric', month: 'short' });
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-        // Loading Screen
-        setTimeout(() => {
-            const ls = document.getElementById('loadingScreen');
-            if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.5s'; setTimeout(() => ls.remove(), 500); }
-        }, 2000);
-
         // Firebase Configuration - Simulation Mode
         const firebaseConfig = { apiKey: "AIzaSyASFL2t752bs84WBGFxYTuawGEGXDdhmRE", authDomain: "my-systim.firebaseapp.com", databaseURL: "https://my-systim-default-rtdb.firebaseio.com", projectId: "my-systim", storageBucket: "my-systim.appspot.com", messagingSenderId: "123456789", appId: "1:123456789:web:abcdef123456" };
         let database, firebaseInitialized = false;
@@ -1269,8 +1199,6 @@
             // Show/hide admin-only sections
             const resetBtn = document.querySelector('button[onclick="resetData()"]');
             if (resetBtn) resetBtn.closest('.glass').style.display = isAdmin ? '' : 'none';
-            const systemHealthEl = document.getElementById('systemHealth');
-            if (systemHealthEl) systemHealthEl.style.display = isAdmin ? 'block' : 'none';
         }
 
         // ============ TAB NAVIGATION ============
@@ -1712,10 +1640,10 @@
                 }
             }
 
-            // Header alert pulse
-            const headerEl = document.querySelector('#mainApp header.glass');
-            if (headerEl) headerEl.classList.toggle('header-alert', hasAlert);
-
+            updateGateUI('entry', garageData.entryGate);
+            updateGateUI('exit', garageData.exitGate);
+            updateGateUI('security', garageData.securityDoor);
+            updateCharts();
         }
 
         function updateSensorsUI() {
@@ -1893,7 +1821,7 @@
             if (occCtx) {
                 occupancyChart = new Chart(occCtx.getContext('2d'), {
                     type: 'doughnut',
-                    data: { labels: ['مشغول', 'متاح'], datasets: [{ data: [garageData.carsCount, garageData.maxCars - garageData.carsCount], backgroundColor: ['#00d4ff', 'rgba(124, 58, 237, 0.1)'], borderColor: ['#00d4ff', 'rgba(124, 58, 237, 0.3)'], borderWidth: 2 }] },
+                    data: { labels: ['مشغول', 'متاح'], datasets: [{ data: [garageData.carsCount, garageData.maxCars - garageData.carsCount], backgroundColor: ['#00d4ff', 'rgba(255,255,255,0.1)'], borderColor: ['#00d4ff', 'rgba(255,255,255,0.2)'], borderWidth: 2 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } }
                 });
             }
@@ -1901,7 +1829,7 @@
             if (tempCtx) {
                 tempHumidityChart = new Chart(tempCtx.getContext('2d'), {
                     type: 'line',
-                    data: { labels: ['6 ص', '9 ص', '12 م', '3 م', '6 م', '9 م'], datasets: [{ label: 'الحرارة', data: [20, 24, 30, 33, 29, 24], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.15)', fill: true, tension: 0.45 }, { label: 'الرطوبة', data: [60, 52, 40, 38, 48, 55], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.15)', fill: true, tension: 0.45 }] },
+                    data: { labels: ['6 ص', '9 ص', '12 م', '3 م', '6 م', '9 م'], datasets: [{ label: 'الحرارة', data: [20, 24, 30, 33, 29, 24], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.45 }, { label: 'الرطوبة', data: [60, 52, 40, 38, 48, 55], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.45 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } }, scales: { x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
                 });
             }
@@ -1909,7 +1837,7 @@
             if (carsCtx) {
                 carsMovementChart = new Chart(carsCtx.getContext('2d'), {
                     type: 'bar',
-                    data: { labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'], datasets: [{ label: 'عدد السيارات', data: [7, 8, 5, 9, 6, 8, 4], backgroundColor: 'rgba(0,212,255,0.6)', borderColor: '#00d4ff', hoverBackgroundColor: 'rgba(0,212,255,0.85)', borderWidth: 2, borderRadius: 10 }] },
+                    data: { labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'], datasets: [{ label: 'عدد السيارات', data: [7, 8, 5, 9, 6, 8, 4], backgroundColor: 'rgba(0,212,255,0.7)', borderColor: '#00d4ff', borderWidth: 2, borderRadius: 10 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'white' }, grid: { display: false } }, y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
                 });
             }
@@ -1917,7 +1845,7 @@
             if (alertsCtx) {
                 alertsDistributionChart = new Chart(alertsCtx.getContext('2d'), {
                     type: 'pie',
-                    data: { labels: ['حريق', 'غاز', 'اهتزاز', 'حرارة'], datasets: [{ data: [2, 5, 3, 1], backgroundColor: ['rgba(239,68,68,0.85)', 'rgba(245,158,11,0.85)', 'rgba(124,58,237,0.85)', 'rgba(236,72,153,0.85)'], borderColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'], borderWidth: 2 }] },
+                    data: { labels: ['حريق', 'غاز', 'اهتزاز', 'حرارة'], datasets: [{ data: [2, 5, 3, 1], backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'], borderWidth: 0 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { family: 'Cairo' } } } } }
                 });
             }
@@ -2006,19 +1934,6 @@
             if (banner) banner.style.display = 'none';
         }
 
-        function showAlertBanner(level, message) {
-            const banner = document.getElementById('alertBanner');
-            const iconEl = document.getElementById('alertIcon');
-            const msgEl = document.getElementById('alertMessage');
-            const icons = { danger: '⚠️', success: '✅', warning: '⚠️' };
-            if (iconEl) iconEl.textContent = icons[level] || '⚠️';
-            if (msgEl) msgEl.textContent = message;
-            if (banner) { banner.className = 'alert-banner ' + level; banner.style.display = 'flex'; }
-            if (settings.sound) playAlertSound(level === 'danger' ? 'fire' : 'gas');
-            if (settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            setTimeout(() => hideAlertBanner(), 8000);
-        }
-
         function playAlertSound(type) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2039,8 +1954,7 @@
             if (!c) return;
             const t = document.createElement('div');
             t.className = 'toast ' + type;
-            const toastIcons = { success: '✅', error: '❌', warning: '⚠️' };
-            t.innerHTML = '<span class="mr-2">' + (toastIcons[type] || 'ℹ️') + '</span>' + message;
+            t.textContent = message;
             c.appendChild(t);
             setTimeout(() => {
                 t.style.opacity = '0';
@@ -2073,11 +1987,9 @@
             // Prevent duplicate simulation intervals
             if (mainSimulationInterval) return;
             // Realistic simulation with proper parking spot management
-            mainSimulationInterval = setInterval(() => {
-                // Gas sensor simulation (only if Firebase is not providing data)
-                if (!firebaseInitialized) {
-                    garageData.gasLevel = Math.floor(80 + Math.random() * 140); // 80-220 ppm (safe range)
-                }
+            setInterval(() => {
+                // Gas sensor simulation
+                garageData.gasLevel = Math.floor(80 + Math.random() * 140); // 80-220 ppm (safe range)
 
                 // Random car entry (8% chance every 5 seconds = roughly 1 car per minute)
                 if (Math.random() > 0.92) {
@@ -2265,8 +2177,6 @@
 
             document.getElementById('congestionAdvice').textContent = advice;
             document.getElementById('congestionUpdate').textContent = new Date().toLocaleTimeString('ar-SA');
-            const occEl = document.getElementById('congestionCurrentOcc');
-            if (occEl) occEl.textContent = Math.round((garageData.carsCount / garageData.maxCars) * 100) + '% (' + garageData.carsCount + '/' + garageData.maxCars + ')';
         }
 
         function showQuickBook() {
