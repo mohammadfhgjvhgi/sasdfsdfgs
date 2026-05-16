@@ -1647,13 +1647,11 @@
         }
 
              function updateGateUI(gateKey, isOpen) {
-            // Normalize gateKey: support both short ('entry') and full ('entryGate') keys
             const normalizeMap = { 'entryGate': 'entry', 'exitGate': 'exit', 'securityDoor': 'security' };
             const normalizedKey = normalizeMap[gateKey] || gateKey;
             const idMap = { entry: 'entryGate', exit: 'exitGate', security: 'securityDoor' };
             const prefix = idMap[normalizedKey] || gateKey;
             const statusEl = document.getElementById(prefix + 'Status');
-            const btnEl = document.getElementById(prefix + 'Btn');
             const gateBarEl = document.getElementById(prefix);
             const iconEl = document.getElementById(prefix + 'Icon');
             const gateNames = { entry: 'بوابة الدخول', exit: 'بوابة الخروج', security: 'باب غرفة الأمان' };
@@ -1663,17 +1661,25 @@
                 statusEl.className = 'text-center mb-5';
                 statusEl.innerHTML = '<span class="status-badge ' + (isOpen ? 'status-danger' : 'status-online') + '"><span>' + (isOpen ? gateName + ' مفتوحة' : gateName + ' مغلقة') + '</span></span>';
             }
-            if (btnEl) {
-                btnEl.className = (isOpen ? 'btn btn-danger w-full' : 'btn btn-primary w-full');
-                btnEl.innerHTML = isOpen ?
-                    '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg><span>إغلاق ' + gateName + '</span>' :
-                    '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg><span>فتح ' + gateName + '</span>';
+            if (normalizedKey === 'security') {
+                const openBtn = document.getElementById('securityOpenBtn');
+                const closeBtn = document.getElementById('securityCloseBtn');
+                if (openBtn) openBtn.className = (isOpen ? 'btn btn-secondary w-full' : 'btn btn-success w-full');
+                if (closeBtn) closeBtn.className = (isOpen ? 'btn btn-danger w-full' : 'btn btn-secondary w-full');
+            } else {
+                const btnEl = document.getElementById(prefix + 'Btn');
+                if (btnEl) {
+                    btnEl.className = (isOpen ? 'btn btn-danger w-full' : 'btn btn-primary w-full');
+                    btnEl.innerHTML = isOpen ?
+                        '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg><span>إغلاق ' + gateName + '</span>' :
+                        '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg><span>فتح ' + gateName + '</span>';
+                }
             }
             if (gateBarEl) {
                 const visual = gateBarEl.closest('.gate-visual');
                 if (visual) visual.classList.toggle('gate-open', isOpen);
             }
-            if (iconEl) iconEl.textContent = isOpen ? '✅' : '🚫';
+            if (iconEl) iconEl.textContent = isOpen ? '✅' : '🔒';
         }
 
         function addGateLog(gate, action) {
@@ -1802,28 +1808,18 @@
             updateSensor('gas', garageData.gasLevel + ' ppm', '--:--', garageData.gasLevel > settings.gasThreshold);
             updateSensor('vibration', garageData.vibrationAlert ? '⚠ اهتزاز!' : 'لا يوجد', garageData.vibrationAlert ? new Date().toLocaleTimeString('ar-SA') : '--:--', garageData.vibrationAlert);
 
-            // Relay status - ON when any gate is active
+            // Update Relay/Buzzer status in IoT Control Panel
             const relayActive = garageData.entryGate || garageData.exitGate || garageData.securityDoor;
-            const relayValueEl = document.getElementById('relayValue');
-            const relayTimeEl = document.getElementById('relayTime');
-            const relayStatusEl = document.getElementById('relayStatus');
-            if (relayValueEl) relayValueEl.textContent = relayActive ? 'ON' : 'OFF';
-            if (relayTimeEl) relayTimeEl.textContent = relayActive ? new Date().toLocaleTimeString('ar-SA') : '--:--';
-            if (relayStatusEl) {
-                relayStatusEl.className = 'status-badge ' + (relayActive ? 'status-danger' : 'status-online');
-                relayStatusEl.innerHTML = '<span>' + (relayActive ? 'ON' : 'OFF') + '</span>';
+            const relayCtrlStatus = document.getElementById('relayControlStatus');
+            if (relayCtrlStatus) {
+                relayCtrlStatus.className = 'status-badge ' + (relayActive ? 'status-danger' : 'status-online');
+                relayCtrlStatus.innerHTML = '<span>' + (relayActive ? 'ON' : 'OFF') + '</span>';
             }
-
-            // Buzzer status - active on gas or vibration alerts
             const buzzerActive = garageData.gasAlert || garageData.vibrationAlert;
-            const buzzerValueEl = document.getElementById('buzzerValue');
-            const buzzerTimeEl = document.getElementById('buzzerTime');
-            const buzzerStatusEl = document.getElementById('buzzerStatus');
-            if (buzzerValueEl) buzzerValueEl.textContent = buzzerActive ? '⚠ نشط' : 'صامت';
-            if (buzzerTimeEl) buzzerTimeEl.textContent = buzzerActive ? new Date().toLocaleTimeString('ar-SA') : '--:--';
-            if (buzzerStatusEl) {
-                buzzerStatusEl.className = 'status-badge ' + (buzzerActive ? 'status-danger' : 'status-online');
-                buzzerStatusEl.innerHTML = '<span>' + (buzzerActive ? 'نشط!' : 'صامت') + '</span>';
+            const buzzerCtrlStatus = document.getElementById('buzzerControlStatus');
+            if (buzzerCtrlStatus) {
+                buzzerCtrlStatus.className = 'status-badge ' + (buzzerActive ? 'status-danger' : 'status-online');
+                buzzerCtrlStatus.innerHTML = '<span>' + (buzzerActive ? 'نشط' : 'صامت') + '</span>';
             }
 
             updateSensorsGrid();
@@ -1851,7 +1847,7 @@
             for (let i = 0; i < garageData.maxCars; i++) {
                 const spot = document.createElement('div');
                 spot.className = 'parking-spot available';
-                spot.innerHTML = `<span class="number">${i + 1}</span><span style="font-size:18px;line-height:1">🅿️</span><span class="status" style="color: var(--green-500)">متاح</span>`;
+                spot.innerHTML = `<span class="number">${i + 1}</span><span style="font-size:18px;line-height:1">🅿️</span><span class="status" style="color: var(--success)">متاح</span>`;
                 spot.onclick = () => selectSpot(i + 1);
                 grid.appendChild(spot);
             }
@@ -1860,7 +1856,7 @@
 
         function updateParkingGrid() {
             const spots = document.querySelectorAll('.parking-spot');
-            const statuses = { available: ['متاح', 'green-500', '🅿️'], occupied: ['مشغول', 'red-500', '🚗'], booked: ['محجوز', 'yellow-500', '📋'] };
+            const statuses = { available: ['متاح', 'success', '🅿️'], occupied: ['مشغول', 'danger', '🚗'], booked: ['محجوز', 'warning', '📋'] };
             spots.forEach((spot, i) => {
                 const state = garageData.parkingSpots[i];
                 spot.className = 'parking-spot ' + state;
@@ -2264,9 +2260,47 @@
                 updateUI();
                 updateSensorsUI();
             }, 5000);
+            // Trigger initial update immediately so user sees something right away
+            updateUI();
+            updateSensorsUI();
+            updateParkingGrid();
+            updateGateUI('entryGate', false);
+            updateGateUI('exitGate', false);
+            updateGateUI('securityDoor', false);
             addEvent('تم تشغيل نظام الكراج الذكي بنجاح', 'info');
             addEvent('جميع المستشعرات تعمل بشكل طبيعي', 'info');
             addEvent('النظام جاهز لاستقبال السيارات', 'info');
+            // Force a car entry within 3 seconds to show the system is active
+            setTimeout(() => {
+                const availableIdx = garageData.parkingSpots.findIndex(s => s === 'available');
+                if (availableIdx !== -1) {
+                    garageData.irEntry = true;
+                    addEvent('تم استشعار سيارة عند بوابة الدخول', 'entry');
+                    addIoTLog('🚗 حساس IR Entry: تم كشف سيارة', 'success');
+                    setTimeout(() => {
+                        garageData.entryGate = true;
+                        updateGateUI('entryGate', true);
+                        addIoTLog('🚧 بوابة الدخول: تم الفتح', 'info');
+                        setTimeout(() => {
+                            garageData.irEntry = false;
+                            garageData.entryGate = false;
+                            garageData.parkingSpots[availableIdx] = 'occupied';
+                            garageData.carsCount = garageData.parkingSpots.filter(s => s !== 'available').length;
+                            const randomPlate = generatePSPlate();
+                            const randomModel = psCarModels[Math.floor(Math.random() * psCarModels.length)];
+                            const entryTime = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                            if (garageData.carPlates) garageData.carPlates[availableIdx] = randomPlate;
+                            if (garageData.carModels) garageData.carModels[availableIdx] = randomModel;
+                            if (garageData.entryTimes) garageData.entryTimes[availableIdx] = entryTime;
+                            addEvent('دخلت سيارة في موقف #' + (availableIdx + 1) + ' - ' + randomModel + ' | ' + randomPlate, 'entry');
+                            addIoTLog('موقف #' + (availableIdx + 1) + ': مشغول - ' + randomModel + ' | ' + randomPlate, 'success');
+                            updateUI();
+                            updateParkingGrid();
+                            updateGateUI('entryGate', false);
+                        }, 2000);
+                    }, 1000);
+                }
+            }, 3000);
         }
 
         function initializeApp() {
