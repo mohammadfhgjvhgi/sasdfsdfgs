@@ -332,6 +332,10 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
                     البوابات
                 </button>
+                <button class="tab-btn" data-tab="control">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    التحكم اليدوي
+                </button>
                 <button class="tab-btn" data-tab="sensors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
                     المستشعرات
@@ -349,8 +353,8 @@
                     الإعدادات
                 </button>
                 <button class="tab-btn" data-tab="iot">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    التحكم و IoT
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                    IoT
                 </button>
             </div>
         </nav>
@@ -556,6 +560,104 @@
                     </h3>
                     <div id="gateLogs" class="space-y-4 max-h-64 overflow-y-auto pl-2">
                         <p class="text-gray-400 text-center py-8">لا توجد عمليات مسجلة</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manual Control -->
+            <section id="tab-control" class="tab-content space-y-6" style="display: none;">
+                <!-- Actuators: Relay + Buzzer -->
+                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-4">
+                        <span class="w-12 h-12 bg-yellow-500/18 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </span>
+                        التحكم بالمشغلات - Actuators Control
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Relay / Lights -->
+                        <div class="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <div class="flex items-center gap-4 mb-5">
+                                <div class="w-16 h-16 bg-yellow-500/18 rounded-xl flex items-center justify-center">
+                                    <span class="text-4xl">💡</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-white text-lg">الإضاءة (Relay)</h4>
+                                    <p class="text-xs text-gray-400">D25 - تحكم يدوي في الإضاءة</p>
+                                </div>
+                                <span id="relayControlStatus" class="status-badge status-online">OFF</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-5">تحكم بإضاءة الكراج من خلال الريليه المتصل بالمنفذ الرقمي D25 على Mega 2560.</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="sendCommand('light', true)" class="btn btn-success w-full py-4 text-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    تشغيل الإضاءة
+                                </button>
+                                <button onclick="sendCommand('light', false)" class="btn btn-danger w-full py-4 text-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    إطفاء الإضاءة
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Buzzer -->
+                        <div class="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <div class="flex items-center gap-4 mb-5">
+                                <div class="w-16 h-16 bg-red-500/18 rounded-xl flex items-center justify-center">
+                                    <span class="text-4xl">🔔</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-white text-lg">المنبه (Buzzer)</h4>
+                                    <p class="text-xs text-gray-400">D8 - تنبيه صوتي يدوي</p>
+                                </div>
+                                <span id="buzzerControlStatus" class="status-badge status-online">صامت</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-5">تشغيل أو إيقاف المنبه الصوتي المتصل بالمنفذ الرقمي D8 على Mega 2560.</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="sendCommand('buzzer', true)" class="btn btn-success w-full py-4 text-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    تشغيل المنبه
+                                </button>
+                                <button onclick="sendCommand('buzzer', false)" class="btn btn-danger w-full py-4 text-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    إيقاف المنبه
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Quick Gate Control -->
+                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.15s;">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-4">
+                        <span class="w-12 h-12 bg-green-500/18 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                        </span>
+                        فتح سريع للبوابات - Quick Gate Open
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <button onclick="toggleGate('entry')" class="btn btn-primary w-full py-5 text-base">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                            فتح/إغلاق بوابة الدخول
+                        </button>
+                        <button onclick="toggleGate('exit')" class="btn btn-primary w-full py-5 text-base">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            فتح/إغلاق بوابة الخروج
+                        </button>
+                        <button onclick="openCloseSecurity(true)" class="btn btn-success w-full py-5 text-base">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                            فتح باب الأمان
+                        </button>
+                    </div>
+                </div>
+                <!-- Control Log -->
+                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-4">
+                        <span class="w-12 h-12 bg-gray-500/18 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        </span>
+                        سجل الأوامر المُرسلة
+                    </h3>
+                    <div id="controlLog" class="space-y-3 max-h-72 overflow-y-auto pl-2">
+                        <p class="text-gray-400 text-center py-8">لم يتم إرسال أي أمر بعد</p>
                     </div>
                 </div>
             </section>
@@ -974,62 +1076,6 @@
                             <div class="bg-white/5 rounded-xl p-3 text-center">
                                 <span class="text-red-400 font-mono">D8</span>
                                 <p class="text-gray-400 text-xs">Buzzer</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Manual Control Panel -->
-                <div class="glass p-7 animate-slide-up" style="animation-delay: 0.28s;">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-4">
-                        <span class="w-12 h-12 bg-yellow-500/18 rounded-xl flex items-center justify-center"><svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></span>
-                        لوحة التحكم اليدوي - Manual Control
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <!-- Relay / Lights -->
-                        <div class="p-5 bg-white/5 rounded-2xl border border-white/5">
-                            <div class="flex items-center gap-4 mb-5">
-                                <div class="w-14 h-14 bg-yellow-500/18 rounded-xl flex items-center justify-center">
-                                    <span class="text-3xl">💡</span>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-white text-lg">الإضاءة (Relay)</h4>
-                                    <p class="text-xs text-gray-400">D25 - تحكم يدوي في الإضاءة</p>
-                                </div>
-                                <span id="relayControlStatus" class="status-badge status-online">OFF</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="sendCommand('light', true)" class="btn btn-success w-full py-4 text-sm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    تشغيل
-                                </button>
-                                <button onclick="sendCommand('light', false)" class="btn btn-danger w-full py-4 text-sm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    إيقاف
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Buzzer -->
-                        <div class="p-5 bg-white/5 rounded-2xl border border-white/5">
-                            <div class="flex items-center gap-4 mb-5">
-                                <div class="w-14 h-14 bg-red-500/18 rounded-xl flex items-center justify-center">
-                                    <span class="text-3xl">🔔</span>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-white text-lg">المنبه (Buzzer)</h4>
-                                    <p class="text-xs text-gray-400">D8 - تنبيه صوتي يدوي</p>
-                                </div>
-                                <span id="buzzerControlStatus" class="status-badge status-online">صامت</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="sendCommand('buzzer', true)" class="btn btn-success w-full py-4 text-sm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    تشغيل
-                                </button>
-                                <button onclick="sendCommand('buzzer', false)" class="btn btn-danger w-full py-4 text-sm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    إيقاف
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1617,8 +1663,43 @@
             const names = { 'entryGate': 'بوابة الدخول', 'exitGate': 'بوابة الخروج', 'securityDoor': 'باب غرفة الأمان', 'light': 'الإضاءة', 'buzzer': 'المنبه' };
             const actions = { 'entryGate': value ? 'فتح' : 'إغلاق', 'exitGate': value ? 'فتح' : 'إغلاق', 'securityDoor': value ? 'فتح' : 'إغلاق', 'light': value ? 'تشغيل' : 'إيقاف', 'buzzer': value ? 'تشغيل' : 'إيقاف' };
             addGateLog(command, value);
+            addControlLog(command, value, names[command], actions[command], bridgeCmd);
             addEvent(actions[command] + ' ' + (names[command] || 'أمر') + ' - بواسطة ' + (currentUser ? currentUser.name : 'نظام'), 'gate');
+            addIoTLog('📡 أمر: ' + bridgeCmd + ' (' + actions[command] + ' ' + (names[command] || '') + ')', 'info');
             showToast(actions[command] + ': ' + (names[command] || 'أمر'), 'success');
+        }
+
+        function addControlLog(command, value, name, action, cmd) {
+            const controlLogEl = document.getElementById('controlLog');
+            if (!controlLogEl) return;
+            const logEntry = {
+                time: new Date().toLocaleTimeString('ar-SA'),
+                command: cmd || command,
+                action: action + ' ' + (name || ''),
+                user: currentUser ? currentUser.name : 'نظام',
+                value: value
+            };
+            const colorMap = { light: value ? 'text-yellow-400' : 'text-gray-400', buzzer: value ? 'text-red-400' : 'text-gray-400', entryGate: 'text-green-400', exitGate: 'text-orange-400', securityDoor: 'text-purple-400' };
+            const color = colorMap[command] || 'text-cyan-400';
+            const iconMap = { light: '💡', buzzer: '🔔', entryGate: '🚧', exitGate: '🚧', securityDoor: '🔒' };
+            const icon = iconMap[command] || '📡';
+            // Remove placeholder
+            if (controlLogEl.querySelector('p')) controlLogEl.innerHTML = '';
+            const div = document.createElement('div');
+            div.className = 'event-item gate';
+            div.innerHTML = `
+                <span class="text-2xl">${icon}</span>
+                <div class="flex-1">
+                    <p class="font-semibold text-white">${logEntry.action}</p>
+                    <p class="text-xs text-gray-400">الأمر: <span class="font-mono ${color}">${logEntry.command}</span></p>
+                </div>
+                <div class="text-left">
+                    <p class="text-xs text-gray-400">${logEntry.time}</p>
+                    <p class="text-xs text-gray-500">${logEntry.user}</p>
+                </div>
+            `;
+            controlLogEl.prepend(div);
+            if (controlLogEl.children.length > 20) controlLogEl.lastChild.remove();
         }
 
         // فتح/إغلاق باب الأمان - أزرار منفصلة
